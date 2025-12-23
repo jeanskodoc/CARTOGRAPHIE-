@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Géolocalisation des Établissements Scolaires du Togo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Reset et styles de base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+        
+        html {
+            font-size: 16px;
+            height: 100%;
+            overflow-x: hidden;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        
+        /* Header et Navigation */
+        header {
+            background: linear-gradient(135deg, #006b3f, #ffce00);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo {
+            background-color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .logo i {
+            font-size: 28px;
+            color: #006b3f;
+        }
+        
+        .logo-text h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .logo-text p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .main-nav ul {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+        
+        .main-nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 12px 20px;
+            border-radius: 6px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .main-nav a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .main-nav a.active {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        /* Contenu principal */
+        .main-content {
+            margin-top: 120px;
+            padding: 20px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* Onglets */
+        .tabs-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .tabs-header {
+            display: flex;
+            background: linear-gradient(135deg, #006b3f, #009658);
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 20px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .tab-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .tab-btn.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            position: relative;
+        }
+        
+        .tab-btn.active::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: #ffce00;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 40px;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Formulaire de commande */
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .form-title {
+            color: #006b3f;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5eb;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #006b3f;
+            box-shadow: 0 0 0 3px rgba(0, 107, 63, 0.1);
+        }
+        
+        textarea.form-input {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5eb;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: white;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            appearance: none;
+        }
+        
+        /* Boutons */
+        .btn {
+            padding: 16px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background-color: #006b3f;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #005630;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 107, 63, 0.3);
+        }
+        
+        .btn-whatsapp {
+            background-color: #25D366;
+            color: white;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .btn-whatsapp:hover {
+            background-color: #1da851;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(37, 211, 102, 0.3);
+        }
+        
+        .btn-large {
+            padding: 18px 40px;
+            font-size: 1.1rem;
+        }
+        
+        /* Admin */
+        .admin-container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+        
+        .login-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #006b3f, #009658);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        
+        .login-icon i {
+            font-size: 36px;
+            color: white;
+        }
+        
+        .login-title {
+            color: #006b3f;
+            margin-bottom: 10px;
+            font-size: 1.6rem;
+        }
+        
+        .login-subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        /* Carte */
+        .map-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .map-info {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .map-title {
+            color: #006b3f;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        
+        .map-description {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .app-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+        
+        .app-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .app-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .app-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #006b3f, #009658);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        
+        .app-icon i {
+            font-size: 36px;
+            color: white;
+        }
+        
+        .app-card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+        
+        .app-card p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .download-btn {
+            background-color: #ffce00;
+            color: #333;
+            padding: 12px 25px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+        
+        .download-btn:hover {
+            background-color: #e6b800;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 206, 0, 0.3);
+        }
+        
+        /* Alertes */
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        /* Footer */
+        footer {
+            background: #2c3e50;
+            color: white;
+            padding: 40px 0 20px;
+            margin-top: 60px;
+        }
+        
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            text-align: center;
+        }
+        
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .footer-logo i {
+            font-size: 24px;
+            color: #ffce00;
+        }
+        
+        .footer-logo h3 {
+            font-size: 1.3rem;
+            color: #ffce00;
+        }
+        
+        .footer-info p {
+            color: #ddd;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        
+        .copyright {
+            padding-top: 20px;
+            margin-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            position: relative;
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #666;
+            cursor: pointer;
+            padding: 5px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-nav {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: #006b3f;
+                padding: 20px;
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            }
+            
+            .main-nav.active {
+                display: block;
+            }
+            
+            .main-nav ul {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .tabs-header {
+                flex-direction: column;
+            }
+            
+            .tab-btn {
+                padding: 15px;
+            }
+            
+            .main-content {
+                margin-top: 140px;
+                padding: 15px;
+            }
+            
+            .tab-content {
+                padding: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logo-text h1 {
+                font-size: 1.2rem;
+            }
+            
+            .tab-content {
+                padding: 15px;
+            }
+            
+            .login-box {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <div class="logo-container">
+                <div class="logo">
+                    <i class="fas fa-map-marked-alt"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>Cartographie Togo</h1>
+                    <p>Système de Géolocalisation des Établissements</p>
+                </div>
+            </div>
+            
+            <button class="mobile-menu-btn" id="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <nav class="main-nav" id="main-nav">
+                <ul>
+                    <li><a href="#" class="nav-link active" data-tab="commande"><i class="fas fa-shopping-cart"></i> Commande de Carte</a></li>
+                    <li><a href="#" class="nav-link" data-tab="admin"><i class="fas fa-user-shield"></i> Admin</a></li>
+                    <li><a href="#" class="nav-link" data-tab="carte"><i class="fas fa-map"></i> Visualiser Carte</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Contenu principal -->
+    <main class="main-content">
+        <!-- Onglets -->
+        <div class="tabs-container">
+            <div class="tabs-header">
+                <button class="tab-btn active" data-tab="commande">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Commande de Carte</span>
+                </button>
+                <button class="tab-btn" data-tab="admin">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Administration</span>
+                </button>
+                <button class="tab-btn" data-tab="carte">
+                    <i class="fas fa-map"></i>
+                    <span>Visualiser Carte</span>
+                </button>
+            </div>
+            
+            <!-- Onglet 1: Commande de Carte -->
+            <div class="tab-content active" id="commande-content">
+                <div class="form-container">
+                    <h2 class="form-title">Commander une Carte Géolocalisée</h2>
+                    
+                    <div class="alert" id="order-alert"></div>
+                    
+                    <form id="order-form">
+                        <div class="form-group">
+                            <label class="form-label" for="client-name">Nom et Prénom *</label>
+                            <input type="text" id="client-name" class="form-input" placeholder="Votre nom complet" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="client-phone">Numéro de Téléphone *</label>
+                            <input type="tel" id="client-phone" class="form-input" placeholder="Ex: +228 92 87 16 05" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="client-email">Adresse Email</label>
+                            <input type="email" id="client-email" class="form-input" placeholder="votre@email.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="map-type">Type de Carte *</label>
+                            <select id="map-type" class="form-select" required>
+                                <option value="">Sélectionnez un type de carte</option>
+                                <option value="etablissements">Carte des Établissements Scolaires</option>
+                                <option value="perimetres">Carte des Périmètres Pédagogiques</option>
+                                <option value="inspections">Carte des Inspections Scolaires</option>
+                                <option value="directions">Carte des Directions Régionales</option>
+                                <option value="complet">Carte Complète (Tous les éléments)</option>
+                                <option value="personnalise">Carte Personnalisée</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="region">Région *</label>
+                            <select id="region" class="form-select" required>
+                                <option value="">Sélectionnez une région</option>
+                                <option value="toutes">Toutes les régions</option>
+                                <option value="maritime">Région Maritime</option>
+                                <option value="plateaux">Région des Plateaux</option>
+                                <option value="centrale">Région Centrale</option>
+                                <option value="kara">Région de la Kara</option>
+                                <option value="savanes">Région des Savanes</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="format">Format de la Carte *</label>
+                            <select id="format" class="form-select" required>
+                                <option value="">Sélectionnez un format</option>
+                                <option value="kml">KML (Google Earth)</option>
+                                <option value="gpx">GPX (Appareils GPS)</option>
+                                <option value="geojson">GeoJSON (SIG)</option>
+                                <option value="pdf">PDF (Document)</option>
+                                <option value="image">Image (PNG/JPEG)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="comments">Commentaires ou Demandes Spéciales</label>
+                            <textarea id="comments" class="form-input" placeholder="Précisez vos besoins spécifiques, la zone précise, les éléments à inclure/exclure, etc."></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-whatsapp">
+                            <i class="fab fa-whatsapp"></i> Envoyer la Commande par WhatsApp
+                        </button>
+                        
+                        <div style="text-align: center; margin-top: 20px; color: #666; font-size: 0.9rem;">
+                            <p><i class="fas fa-info-circle"></i> La commande sera envoyée au numéro: <strong>+228 92 87 16 05</strong></p>
+                            <p>Vous recevrez un accusé de réception sous 24 heures.</p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Onglet 2: Administration -->
+            <div class="tab-content" id="admin-content">
+                <div class="admin-container">
+                    <div class="login-box">
+                        <div class="login-icon">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        
+                        <h2 class="login-title">Accès Administration</h2>
+                        <p class="login-subtitle">Accédez à l'interface de gestion des cartes</p>
+                        
+                        <div class="alert" id="login-alert"></div>
+                        
+                        <form id="login-form">
+                            <div class="form-group">
+                                <label class="form-label" for="username">Identifiant *</label>
+                                <input type="text" id="username" class="form-input" placeholder="Entrez votre identifiant" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="password">Mot de passe *</label>
+                                <input type="password" id="password" class="form-input" placeholder="Entrez votre mot de passe" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-large" style="width: 100%;">
+                                <i class="fas fa-sign-in-alt"></i> Se Connecter
+                            </button>
+                        </form>
+                        
+                        <div style="margin-top: 30px; text-align: center; color: #666;">
+                            <p><i class="fas fa-shield-alt"></i> Zone réservée aux administrateurs</p>
+                            <p style="font-size: 0.9rem; margin-top: 10px;">Identifiants de test: KOLA / KOLA1@</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Onglet 3: Visualiser Carte -->
+            <div class="tab-content" id="carte-content">
+                <div class="map-container">
+                    <div class="map-info">
+                        <h2 class="map-title">Visualiser les Cartes Géolocalisées</h2>
+                        <p class="map-description">
+                            Téléchargez et visualisez les cartes des établissements scolaires du Togo 
+                            dans les formats KML et GPX. Ces formats sont compatibles avec la plupart 
+                            des applications de cartographie et systèmes d'information géographique.
+                        </p>
+                        
+                        <div class="app-links">
+                            <div class="app-card">
+                                <div class="app-icon">
+                                    <i class="fas fa-map"></i>
+                                </div>
+                                <h3>GPX Viewer</h3>
+                                <p>Application Android pour visualiser les fichiers GPX (cartes GPS)</p>
+                                <a href="https://play.google.com/store/apps/details?id=com.vecturagames.android.app.gpxviewer" 
+                                   target="_blank" class="download-btn">
+                                    <i class="fab fa-google-play"></i> Télécharger sur Play Store
+                                </a>
+                            </div>
+                            
+                            <div class="app-card">
+                                <div class="app-icon">
+                                    <i class="fas fa-location-dot"></i>
+                                </div>
+                                <h3>Location Test</h3>
+                                <p>Application pour tester et visualiser les données de localisation</p>
+                                <a href="https://play.google.com/store/apps/details?id=com.location.test" 
+                                   target="_blank" class="download-btn">
+                                    <i class="fab fa-google-play"></i> Télécharger sur Play Store
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 40px; padding: 20px; background: #f0f9f4; border-radius: 10px;">
+                            <h3 style="color: #006b3f; margin-bottom: 15px;"><i class="fas fa-info-circle"></i> Instructions</h3>
+                            <ol style="text-align: left; color: #666; line-height: 1.8;">
+                                <li>Téléchargez l'une des applications ci-dessus depuis le Google Play Store</li>
+                                <li>Commander une carte via l'onglet "Commande de Carte"</li>
+                                <li>Recevez votre fichier KML ou GPX par WhatsApp</li>
+                                <li>Ouvrez le fichier avec l'application téléchargée</li>
+                                <li>Visualisez la carte interactive sur votre appareil</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-logo">
+                <i class="fas fa-map-marked-alt"></i>
+                <h3>Cartographie Togo</h3>
+            </div>
+            
+            <div class="footer-info">
+                <p>Système de géolocalisation des établissements scolaires du Togo</p>
+                <p><i class="fas fa-phone"></i> Support: +228 92 87 16 05</p>
+                <p><i class="fas fa-envelope"></i> Email: cartographie@education.tg</p>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2023 Système de Cartographie des Établissements Scolaires du Togo</p>
+                <p style="margin-top: 10px;">Ministère des Enseignements Primaire, Secondaire, Technique et de l'Artisanat</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal de confirmation -->
+    <div class="modal" id="confirmation-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="close-confirmation-modal">&times;</button>
+            <h2 style="color: #006b3f; margin-bottom: 20px; text-align: center;">Commande Envoyée</h2>
+            
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="width: 80px; height: 80px; background-color: #d4edda; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                    <i class="fas fa-check" style="font-size: 36px; color: #155724;"></i>
+                </div>
+                <p>Votre commande a été préparée pour envoi par WhatsApp.</p>
+            </div>
+            
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h4 style="color: #2c3e50; margin-bottom: 10px;">Récapitulatif de commande:</h4>
+                <div id="order-summary"></div>
+            </div>
+            
+            <p style="text-align: center; color: #666; margin-bottom: 20px;">
+                <i class="fas fa-info-circle"></i> Vous serez redirigé vers WhatsApp pour finaliser l'envoi.
+            </p>
+            
+            <button class="btn btn-whatsapp" id="confirm-whatsapp" style="width: 100%;">
+                <i class="fab fa-whatsapp"></i> Ouvrir WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // INITIALISATION
+        // ============================================
+        
+        // Éléments DOM
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mainNav = document.getElementById('main-nav');
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const orderForm = document.getElementById('order-form');
+        const orderAlert = document.getElementById('order-alert');
+        const loginForm = document.getElementById('login-form');
+        const loginAlert = document.getElementById('login-alert');
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const closeConfirmationModal = document.getElementById('close-confirmation-modal');
+        const confirmWhatsappBtn = document.getElementById('confirm-whatsapp');
+        const orderSummary = document.getElementById('order-summary');
+        
+        // ============================================
+        // FONCTIONS
+        // ============================================
+        
+        // Gestion du menu mobile
+        function setupMobileMenu() {
+            mobileMenuBtn.addEventListener('click', function() {
+                mainNav.classList.toggle('active');
+                const icon = this.querySelector('i');
+                if (mainNav.classList.contains('active')) {
+                    icon.className = 'fas fa-times';
+                } else {
+                    icon.className = 'fas fa-bars';
+                }
+            });
+            
+            // Fermer le menu mobile quand on clique sur un lien
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    mainNav.classList.remove('active');
+                    mobileMenuBtn.querySelector('i').className = 'fas fa-bars';
+                });
+            });
+        }
+        
+        // Gestion des onglets
+        function setupTabs() {
+            // Navigation par onglets (boutons)
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // Mettre à jour les boutons actifs
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Mettre à jour les liens de navigation
+                    navLinks.forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('data-tab') === tabId) {
+                            link.classList.add('active');
+                        }
+                    });
+                    
+                    // Mettre à jour les contenus actifs
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === `${tabId}-content`) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // Navigation par onglets (liens)
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // Mettre à jour les liens actifs
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Mettre à jour les boutons actifs
+                    tabBtns.forEach(btn => {
+                        btn.classList.remove('active');
+                        if (btn.getAttribute('data-tab') === tabId) {
+                            btn.classList.add('active');
+                        }
+                    });
+                    
+                    // Mettre à jour les contenus actifs
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === `${tabId}-content`) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+        }
+        
+        // Gestion du formulaire de commande
+        function setupOrderForm() {
+            if (!orderForm) return;
+            
+            orderForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Récupérer les valeurs du formulaire
+                const name = document.getElementById('client-name').value;
+                const phone = document.getElementById('client-phone').value;
+                const email = document.getElementById('client-email').value;
+                const mapType = document.getElementById('map-type').value;
+                const region = document.getElementById('region').value;
+                const format = document.getElementById('format').value;
+                const comments = document.getElementById('comments').value;
+                
+                // Validation basique
+                if (!name || !phone || !mapType || !region || !format) {
+                    showAlert(orderAlert, 'Veuillez remplir tous les champs obligatoires', 'error');
+                    return;
+                }
+                
+                // Préparer le message WhatsApp
+                const phoneNumber = "22892871605"; // Numéro sans le +
+                let message = `*Nouvelle Commande de Carte*%0A%0A`;
+                message += `*Nom:* ${name}%0A`;
+                message += `*Téléphone:* ${phone}%0A`;
+                if (email) message += `*Email:* ${email}%0A`;
+                message += `*Type de carte:* ${getMapTypeText(mapType)}%0A`;
+                message += `*Région:* ${getRegionText(region)}%0A`;
+                message += `*Format:* ${getFormatText(format)}%0A`;
+                if (comments) message += `*Commentaires:* ${comments}%0A`;
+                message += `%0A*Date:* ${new Date().toLocaleDateString('fr-FR')}`;
+                
+                // Afficher le récapitulatif
+                showOrderSummary(name, phone, email, mapType, region, format, comments);
+                
+                // Stocker le message pour WhatsApp
+                confirmWhatsappBtn.setAttribute('data-whatsapp-message', message);
+                confirmWhatsappBtn.setAttribute('data-phone-number', phoneNumber);
+                
+                // Afficher la modal de confirmation
+                confirmationModal.style.display = 'flex';
+            });
+        }
+        
+        // Afficher le récapitulatif de commande
+        function showOrderSummary(name, phone, email, mapType, region, format, comments) {
+            let summary = `
+                <p><strong>Nom:</strong> ${name}</p>
+                <p><strong>Téléphone:</strong> ${phone}</p>
+                ${email ? `<p><strong>Email:</strong> ${email}</p>` : ''}
+                <p><strong>Type de carte:</strong> ${getMapTypeText(mapType)}</p>
+                <p><strong>Région:</strong> ${getRegionText(region)}</p>
+                <p><strong>Format:</strong> ${getFormatText(format)}</p>
+                ${comments ? `<p><strong>Commentaires:</strong> ${comments}</p>` : ''}
+            `;
+            orderSummary.innerHTML = summary;
+        }
+        
+        // Obtenir le texte pour le type de carte
+        function getMapTypeText(value) {
+            const types = {
+                'etablissements': 'Carte des Établissements Scolaires',
+                'perimetres': 'Carte des Périmètres Pédagogiques',
+                'inspections': 'Carte des Inspections Scolaires',
+                'directions': 'Carte des Directions Régionales',
+                'complet': 'Carte Complète (Tous les éléments)',
+                'personnalise': 'Carte Personnalisée'
+            };
+            return types[value] || value;
+        }
+        
+        // Obtenir le texte pour la région
+        function getRegionText(value) {
+            const regions = {
+                'toutes': 'Toutes les régions',
+                'maritime': 'Région Maritime',
+                'plateaux': 'Région des Plateaux',
+                'centrale': 'Région Centrale',
+                'kara': 'Région de la Kara',
+                'savanes': 'Région des Savanes'
+            };
+            return regions[value] || value;
+        }
+        
+        // Obtenir le texte pour le format
+        function getFormatText(value) {
+            const formats = {
+                'kml': 'KML (Google Earth)',
+                'gpx': 'GPX (Appareils GPS)',
+                'geojson': 'GeoJSON (SIG)',
+                'pdf': 'PDF (Document)',
+                'image': 'Image (PNG/JPEG)'
+            };
+            return formats[value] || value;
+        }
+        
+        // Gestion du formulaire de login
+        function setupLoginForm() {
+            if (!loginForm) return;
+            
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                
+                // Vérifier les identifiants
+                if (username === 'KOLA' && password === 'KOLA1@') {
+                    showAlert(loginAlert, 'Connexion réussie! Redirection...', 'success');
+                    
+                    // Rediriger vers la page admin après 1.5 secondes
+                    setTimeout(() => {
+                        window.location.href = 'ETBCARTE.html';
+                    }, 1500);
+                } else {
+                    showAlert(loginAlert, 'Identifiant ou mot de passe incorrect', 'error');
+                }
+            });
+        }
+        
+        // Gestion de la modal de confirmation
+        function setupConfirmationModal() {
+            if (!closeConfirmationModal || !confirmWhatsappBtn) return;
+            
+            // Fermer la modal
+            closeConfirmationModal.addEventListener('click', function() {
+                confirmationModal.style.display = 'none';
+            });
+            
+            // Ouvrir WhatsApp
+            confirmWhatsappBtn.addEventListener('click', function() {
+                const message = this.getAttribute('data-whatsapp-message');
+                const phoneNumber = this.getAttribute('data-phone-number');
+                
+                // Ouvrir WhatsApp avec le message
+                const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+                window.open(whatsappUrl, '_blank');
+                
+                // Fermer la modal
+                confirmationModal.style.display = 'none';
+                
+                // Réinitialiser le formulaire
+                if (orderForm) {
+                    orderForm.reset();
+                    showAlert(orderAlert, 'Votre commande a été envoyée avec succès!', 'success');
+                }
+            });
+            
+            // Fermer la modal en cliquant en dehors
+            window.addEventListener('click', function(e) {
+                if (e.target === confirmationModal) {
+                    confirmationModal.style.display = 'none';
+                }
+            });
+        }
+        
+        // Afficher une alerte
+        function showAlert(alertElement, message, type) {
+            if (!alertElement) return;
+            
+            alertElement.textContent = message;
+            alertElement.className = `alert alert-${type}`;
+            alertElement.style.display = 'block';
+            
+            // Masquer l'alerte après 5 secondes
+            setTimeout(() => {
+                alertElement.style.display = 'none';
+            }, 5000);
+        }
+        
+        // ============================================
+        // INITIALISATION AU CHARGEMENT
+        // ============================================
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialiser les composants
+            setupMobileMenu();
+            setupTabs();
+            setupOrderForm();
+            setupLoginForm();
+            setupConfirmationModal();
+            
+            // Afficher un message de bienvenue
+            console.log("Système de cartographie des établissements scolaires du Togo");
+        });
+    </script>
+</body>
+</html>

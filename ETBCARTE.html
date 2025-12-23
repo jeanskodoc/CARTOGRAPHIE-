@@ -1,0 +1,3482 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Établissements Scolaires Togo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin="" />
+    <style>
+        /* Reset et styles de base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+        
+        html {
+            font-size: 16px;
+            height: 100%;
+            overflow-x: hidden;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.5;
+            padding: 10px;
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+        
+        /* Container principal */
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px 10px;
+            background: linear-gradient(135deg, #006b3f, #ffce00);
+            color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        
+        header p {
+            font-size: 0.9rem;
+            opacity: 0.95;
+        }
+        
+        /* Alertes */
+        .alert {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+            font-size: 0.9rem;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        /* Navigation par onglets */
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 14px 5px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .tab.active {
+            color: #006b3f;
+            border-bottom: 3px solid #006b3f;
+            background-color: #f0f9f4;
+        }
+        
+        .tab i {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 1.2rem;
+        }
+        
+        /* Contenu des onglets */
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Section titre */
+        .section-title {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #006b3f;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title i {
+            color: #006b3f;
+        }
+        
+        /* Formulaires */
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 14px 12px;
+            border: 2px solid #e1e5eb;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            background: white;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #006b3f;
+            box-shadow: 0 0 0 3px rgba(0, 107, 63, 0.1);
+        }
+        
+        select {
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+        
+        /* Boutons */
+        .btn {
+            padding: 16px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            touch-action: manipulation;
+            min-height: 54px;
+        }
+        
+        .btn-primary {
+            background-color: #006b3f;
+            color: white;
+        }
+        
+        .btn-primary:active {
+            background-color: #005630;
+            transform: translateY(2px);
+        }
+        
+        .btn-secondary {
+            background-color: #ffce00;
+            color: #333;
+        }
+        
+        .btn-secondary:active {
+            background-color: #e6b800;
+            transform: translateY(2px);
+        }
+        
+        .btn-success {
+            background-color: #2ecc71;
+            color: white;
+        }
+        
+        .btn-success:active {
+            background-color: #27ae60;
+            transform: translateY(2px);
+        }
+        
+        .btn-info {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn-info:active {
+            background-color: #2980b9;
+            transform: translateY(2px);
+        }
+        
+        .btn-warning {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .btn-warning:active {
+            background-color: #e67e22;
+            transform: translateY(2px);
+        }
+        
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:active {
+            background-color: #c0392b;
+            transform: translateY(2px);
+        }
+        
+        .btn-kml {
+            background-color: #9b59b6;
+            color: white;
+        }
+        
+        .btn-kml:active {
+            background-color: #8e44ad;
+            transform: translateY(2px);
+        }
+        
+        .btn-gpx {
+            background-color: #e67e22;
+            color: white;
+        }
+        
+        .btn-gpx:active {
+            background-color: #d35400;
+            transform: translateY(2px);
+        }
+        
+        .btn-geojson {
+            background-color: #1abc9c;
+            color: white;
+        }
+        
+        .btn-geojson:active {
+            background-color: #16a085;
+            transform: translateY(2px);
+        }
+        
+        .btn-csv {
+            background-color: #34495e;
+            color: white;
+        }
+        
+        .btn-csv:active {
+            background-color: #2c3e50;
+            transform: translateY(2px);
+        }
+        
+        .btn:disabled {
+            background-color: #bdc3c7;
+            color: #7f8c8d;
+            cursor: not-allowed;
+            opacity: 0.7;
+            transform: none !important;
+        }
+        
+        /* Grille de boutons */
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .button-grid .btn {
+            margin: 0;
+        }
+        
+        .export-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        /* Liste des établissements */
+        .establishment-list {
+            max-height: 60vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            padding: 10px;
+        }
+        
+        .establishment-item {
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+            border-left: 4px solid #006b3f;
+            cursor: pointer;
+        }
+        
+        .establishment-item:active {
+            transform: translateY(2px);
+        }
+        
+        .establishment-item.selected {
+            border-left: 4px solid #e74c3c;
+            background-color: #fff9e6;
+        }
+        
+        .establishment-item h3 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        
+        .establishment-type {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        
+        .type-ceg {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .type-lycee {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .type-other {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            border: 1px solid #dee2e6;
+        }
+        
+        .establishment-details {
+            font-size: 0.85rem;
+            color: #555;
+        }
+        
+        .establishment-details div {
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .location-tag {
+            display: inline-block;
+            background-color: #e8f4fc;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            margin-right: 6px;
+            margin-top: 6px;
+        }
+        
+        .distance-to-user {
+            background-color: #ffce00;
+            color: #333;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-top: 6px;
+            display: inline-block;
+        }
+        
+        .no-data {
+            text-align: center;
+            color: #7f8c8d;
+            padding: 40px 20px;
+            font-style: italic;
+        }
+        
+        /* Carte */
+        .map-container {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        
+        #map, #osmPreview {
+            height: 50vh;
+            width: 100%;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 1px solid #e1e5eb;
+        }
+        
+        .map-placeholder {
+            height: 50vh;
+            width: 100%;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 1px solid #e1e5eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            color: #666;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        /* Panneau de localisation */
+        .location-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        
+        .location-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 10px;
+        }
+        
+        .location-grid div {
+            margin-bottom: 0;
+        }
+        
+        /* Résultats */
+        .result-panel {
+            background-color: #e8f4fc;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-weight: 600;
+            text-align: center;
+            color: #2c3e50;
+            display: none;
+            font-size: 0.9rem;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #7f8c8d;
+            font-size: 0.8rem;
+            padding-top: 15px;
+            border-top: 1px solid #e1e5eb;
+        }
+        
+        /* Boutons flottants pour mobile */
+        .floating-buttons {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+        
+        .floating-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #006b3f;
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: all 0.3s;
+            touch-action: manipulation;
+        }
+        
+        .floating-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .floating-btn.location {
+            background: #3498db;
+        }
+        
+        .floating-btn.export {
+            background: #9b59b6;
+        }
+        
+        .floating-btn.list {
+            background: #f39c12;
+        }
+        
+        /* Modal pour les résultats détaillés */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .modal-header h3 {
+            color: #2c3e50;
+            font-size: 1.3rem;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #666;
+            cursor: pointer;
+            padding: 5px;
+        }
+        
+        .modal-body {
+            margin-bottom: 20px;
+        }
+        
+        /* Options d'export */
+        .export-options {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+        
+        .export-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e1e5eb;
+        }
+        
+        .export-option input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .export-option label {
+            flex: 1;
+            margin: 0;
+            font-weight: normal;
+            font-size: 0.9rem;
+        }
+        
+        /* Filtre des établissements pour l'export */
+        .export-filter {
+            background: #f0f9f4;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border-left: 4px solid #006b3f;
+        }
+        
+        .filter-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+        }
+        
+        .filter-group {
+            margin-bottom: 0;
+        }
+        
+        .filter-group label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        
+        /* Input file custom */
+        .file-input-container {
+            position: relative;
+            margin-bottom: 16px;
+        }
+        
+        .file-input-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 12px;
+            border: 2px dashed #e1e5eb;
+            border-radius: 8px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            gap: 10px;
+        }
+        
+        .file-input-label:hover {
+            border-color: #006b3f;
+            background: #f0f9f4;
+        }
+        
+        .file-input-label i {
+            color: #006b3f;
+        }
+        
+        .file-input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .file-name {
+            margin-top: 5px;
+            font-size: 0.8rem;
+            color: #666;
+            padding: 5px 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        /* GPS Android */
+        .gps-container {
+            background: #f0f9f4;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #006b3f;
+        }
+        
+        .gps-status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            background: white;
+        }
+        
+        .gps-status-indicator.active {
+            background: #e8f4fc;
+            border: 1px solid #3498db;
+        }
+        
+        .gps-accuracy {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .accuracy-good {
+            color: #27ae60;
+        }
+        
+        .accuracy-medium {
+            color: #f39c12;
+        }
+        
+        .accuracy-poor {
+            color: #e74c3c;
+        }
+        
+        .coords-preview {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 1px solid #e1e5eb;
+            text-align: center;
+        }
+        
+        .coords-preview strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #006b3f;
+            font-size: 0.9rem;
+        }
+        
+        .coords-values {
+            font-family: monospace;
+            font-size: 1rem;
+            color: #2c3e50;
+            margin: 10px 0;
+        }
+        
+        .coords-location {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        /* Prévisualisation OSM */
+        .map-preview-container {
+            background: #f0f9f4;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border-left: 4px solid #3498db;
+        }
+        
+        /* Bouton carte */
+        .btn-map {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn-map:active {
+            background-color: #2980b9;
+            transform: translateY(2px);
+        }
+        
+        /* Section coordonnées améliorée */
+        .coordinates-section {
+            border: 2px solid #e1e5eb;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            background: #f9f9f9;
+        }
+        
+        .coordinates-section h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .coordinates-display {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 1px solid #e1e5eb;
+        }
+        
+        /* Nouvelle section pour la génération automatique */
+        .auto-generate-section {
+            background-color: #e8f6f3;
+            border-left: 4px solid #1abc9c;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .auto-generate-section h4 {
+            color: #006b3f;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .city-coords-info {
+            background-color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 1px solid #d1ecf1;
+        }
+        
+        .city-coords-info p {
+            margin: 5px 0;
+            font-size: 0.9rem;
+        }
+        
+        .city-coords-values {
+            font-family: monospace;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 10px 0;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        /* Badge pour source des coordonnées */
+        .coords-source-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .coords-source-gps {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .coords-source-city {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .coords-source-manual {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .coords-source-sample {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        /* Champ coordonnées avec source */
+        .coords-with-source {
+            position: relative;
+        }
+        
+        .coords-source-indicator {
+            position: absolute;
+            top: -8px;
+            right: 10px;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+        
+        /* Style pour les popups Leaflet */
+        .leaflet-popup-content {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            max-width: 250px !important;
+        }
+        
+        .leaflet-popup-content h3 {
+            color: #006b3f;
+            margin: 0 0 10px 0;
+            font-size: 1.1rem;
+        }
+        
+        .leaflet-popup-content p {
+            margin: 5px 0;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        
+        .leaflet-popup-content strong {
+            color: #2c3e50;
+        }
+        
+        /* Responsive */
+        @media (max-width: 480px) {
+            .button-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .export-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .location-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .coords-precision {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-options {
+                grid-template-columns: 1fr;
+            }
+            
+            header h1 {
+                font-size: 1.3rem;
+            }
+            
+            .btn {
+                padding: 14px 16px;
+                font-size: 0.95rem;
+                min-height: 50px;
+            }
+        }
+        
+        @media (min-width: 768px) {
+            body {
+                padding: 20px;
+                padding-bottom: 90px;
+            }
+            
+            .container {
+                max-width: 750px;
+            }
+            
+            .tab {
+                font-size: 1rem;
+                padding: 16px 10px;
+            }
+            
+            .export-buttons {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        /* Animation de chargement */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        .map-loading {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(52, 152, 219, 0.3);
+            border-radius: 50%;
+            border-top-color: #3498db;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-school"></i> Établissements Scolaires Togo</h1>
+            <p>Géolocalisation et gestion des établissements scolaires</p>
+        </header>
+        
+        <div class="alert" id="alert-message"></div>
+        
+        <!-- Navigation par onglets -->
+        <div class="tabs">
+            <div class="tab active" data-tab="form">
+                <i class="fas fa-plus-circle"></i>
+                <span>Ajouter</span>
+            </div>
+            <div class="tab" data-tab="list">
+                <i class="fas fa-list"></i>
+                <span>Liste</span>
+            </div>
+            <div class="tab" data-tab="map">
+                <i class="fas fa-map"></i>
+                <span>Carte</span>
+            </div>
+            <div class="tab" data-tab="export">
+                <i class="fas fa-download"></i>
+                <span>Export</span>
+            </div>
+        </div>
+        
+        <!-- Onglet Formulaire -->
+        <div class="tab-content active" id="form-tab">
+            <h2 class="section-title"><i class="fas fa-edit"></i> Nouvel établissement</h2>
+            
+            <form id="establishment-form">
+                <div class="form-group">
+                    <label for="name">Nom de l'établissement *</label>
+                    <input type="text" id="name" name="name" placeholder="Ex: Lycée Moderne..." required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="type">Type d'établissement *</label>
+                    <select id="type" name="type" required>
+                        <option value="">Sélectionnez un type</option>
+                        <option value="CEG">CEG</option>
+                        <option value="Lycée">Lycée</option>
+                        <option value="École Primaire">École Primaire</option>
+                        <option value="Université">Université</option>
+                        <option value="Institut">Institut</option>
+                        <option value="Collège">Collège</option>
+                        <option value="École Maternelle">École Maternelle</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="region">Région *</label>
+                    <select id="region" name="region" required>
+                        <option value="">Sélectionnez une région</option>
+                        <option value="Maritime">Maritime</option>
+                        <option value="Plateaux">Plateaux</option>
+                        <option value="Centrale">Centrale</option>
+                        <option value="Kara">Kara</option>
+                        <option value="Savanes">Savanes</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="prefecture">Préfecture *</label>
+                    <select id="prefecture" name="prefecture" required>
+                        <option value="">Sélectionnez une préfecture</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ville">Ville/Commune *</label>
+                    <input type="text" id="ville" name="ville" placeholder="Ex: Lomé, Sokodé, Kara..." required>
+                    <small style="color: #666; font-size: 0.8rem; display: block; margin-top: 5px;">
+                        <i class="fas fa-info-circle"></i> Les coordonnées GPS seront automatiquement générées pour les villes reconnues
+                    </small>
+                </div>
+                
+                <!-- SECTION GÉNÉRATION AUTOMATIQUE DES COORDONNÉES PAR VILLE -->
+                <div class="auto-generate-section" id="auto-generate-section" style="display: none;">
+                    <h4>
+                        <i class="fas fa-map-marker-alt"></i> 
+                        Génération automatique par ville
+                    </h4>
+                    <div class="city-coords-info">
+                        <p>La ville "<span id="selected-city-name"></span>" a été reconnue. Les coordonnées GPS ont été automatiquement remplies :</p>
+                        <div class="city-coords-values" id="city-coords-display">
+                            Latitude: <span id="city-latitude"></span>, Longitude: <span id="city-longitude"></span>
+                        </div>
+                        <div class="button-grid">
+                            <button type="button" id="adjust-city-coords" class="btn btn-warning">
+                                <i class="fas fa-edit"></i> Ajuster manuellement
+                            </button>
+                            <button type="button" id="refresh-city-coords" class="btn btn-info">
+                                <i class="fas fa-sync-alt"></i> Actualiser
+                            </button>
+                        </div>
+                        <p style="font-size: 0.8rem; margin-top: 10px; color: #666;">
+                            <i class="fas fa-info-circle"></i> Les coordonnées générées sont approximatives. Pour une précision maximale, utilisez le GPS de votre téléphone.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="address">Adresse détaillée *</label>
+                    <textarea id="address" name="address" rows="3" placeholder="Rue, quartier, secteur, numéro..." required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="director">Directeur/Proviseur</label>
+                    <input type="text" id="director" name="director" placeholder="Nom du responsable">
+                </div>
+                
+                <div class="form-group">
+                    <label for="capacity">Capacité (nombre d'élèves)</label>
+                    <input type="number" id="capacity" name="capacity" min="0" placeholder="Ex: 1500">
+                </div>
+                
+                <!-- Section coordonnées GPS -->
+                <div class="coordinates-section">
+                    <h4 style="color: #006b3f;">
+                        <i class="fas fa-map-marker-alt"></i> Coordonnées GPS de l'établissement
+                        <span class="coords-source-badge" id="coords-source-badge" style="display: none;"></span>
+                    </h4>
+                    
+                    <div class="gps-container">
+                        <h3 style="color: #006b3f; margin-bottom: 15px; font-size: 1.1rem;">
+                            <i class="fas fa-crosshairs"></i> GPS Android Haute Précision
+                        </h3>
+                        
+                        <div class="gps-status-indicator" id="gps-status-indicator">
+                            <i class="fas fa-satellite" id="gps-icon" style="color: #e74c3c;"></i>
+                            <div style="flex: 1;">
+                                <div id="gps-status-text">GPS non activé</div>
+                                <div class="gps-accuracy" id="gps-accuracy">Précision: Indisponible</div>
+                            </div>
+                            <button type="button" id="activate-gps" class="btn btn-primary" style="width: auto; min-height: auto; padding: 8px 15px;">
+                                <i class="fas fa-location-arrow"></i> Activer GPS
+                            </button>
+                        </div>
+                        
+                        <div style="margin-top: 15px;">
+                            <div class="button-grid">
+                                <button type="button" id="capture-gps" class="btn btn-success" disabled>
+                                    <i class="fas fa-crosshairs"></i> Capturer GPS
+                                </button>
+                                <button type="button" id="refresh-gps" class="btn btn-info" disabled>
+                                    <i class="fas fa-sync-alt"></i> Actualiser
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="gps-coordinates-display" style="display: none; margin-top: 15px;">
+                            <div class="coords-preview">
+                                <strong>Coordonnées GPS capturées</strong>
+                                <div class="coords-values" id="gps-coords-values">En attente de position GPS...</div>
+                                <div class="coords-location" id="gps-location-name">Position actuelle</div>
+                                <div style="margin-top: 10px; font-size: 0.8rem;" id="gps-precision-info">
+                                    <i class="fas fa-check-circle" style="color: #27ae60;"></i> Précision: <span id="gps-precision-value">En attente</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="location-panel">
+                        <h4 style="margin-bottom: 15px; color: #2c3e50;">
+                            <i class="fas fa-map-marked-alt"></i> Coordonnées GPS Finales
+                        </h4>
+                        
+                        <div class="button-grid" style="margin-bottom: 15px;">
+                            <button type="button" id="enable-manual-coords" class="btn btn-secondary">
+                                <i class="fas fa-keyboard"></i> Saisie manuelle
+                            </button>
+                            <button type="button" id="use-sample-coords" class="btn btn-warning">
+                                <i class="fas fa-map-pin"></i> Exemple Lomé
+                            </button>
+                            <button type="button" id="show-on-map-btn" class="btn btn-map">
+                                <i class="fas fa-map"></i> Voir sur carte
+                            </button>
+                        </div>
+                        
+                        <div id="manual-coords-section" style="display: none;">
+                            <p><strong>Saisie manuelle des coordonnées:</strong> <span class="coords-source-badge coords-source-manual">Saisie manuelle</span></p>
+                            <div class="location-grid">
+                                <div class="coords-with-source">
+                                    <label for="latitude-manual">Latitude *</label>
+                                    <input type="number" step="any" id="latitude-manual" name="latitude-manual" placeholder="Ex: 6.135842" min="-90" max="90">
+                                    <div class="coords-source-indicator coords-source-manual">Manuel</div>
+                                </div>
+                                <div class="coords-with-source">
+                                    <label for="longitude-manual">Longitude *</label>
+                                    <input type="number" step="any" id="longitude-manual" name="longitude-manual" placeholder="Ex: 1.210356" min="-180" max="180">
+                                    <div class="coords-source-indicator coords-source-manual">Manuel</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="auto-coords-section">
+                            <p><strong>Coordonnées GPS :</strong> <span id="gps-status">En attente de coordonnées</span></p>
+                            <div class="location-grid">
+                                <div class="coords-with-source">
+                                    <label for="latitude-auto">Latitude *</label>
+                                    <input type="text" id="latitude-auto" name="latitude-auto" placeholder="Capturer avec GPS ou sélectionner une ville" readonly required>
+                                    <div class="coords-source-indicator" id="latitude-source-indicator">Source</div>
+                                </div>
+                                <div class="coords-with-source">
+                                    <label for="longitude-auto">Longitude *</label>
+                                    <input type="text" id="longitude-auto" name="longitude-auto" placeholder="Capturer avec GPS ou sélectionner une ville" readonly required>
+                                    <div class="coords-source-indicator" id="longitude-source-indicator">Source</div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 10px; font-size: 0.8rem; color: #666;" id="coords-source-info">
+                                <i class="fas fa-info-circle"></i> Utilisez le GPS, saisissez une ville togolaise, ou utilisez la saisie manuelle
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 10px; text-align: center;">
+                            <small style="color: #666;">
+                                <i class="fas fa-info-circle"></i> Pour une précision maximale, utilisez le GPS de votre téléphone Android
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <!-- Prévisualisation OSM -->
+                    <div class="map-preview-container" id="map-preview-section" style="display: none;">
+                        <h4 style="color: #3498db; margin-bottom: 10px;">
+                            <i class="fas fa-map-marked-alt"></i> Prévisualisation sur OpenStreetMap
+                        </h4>
+                        <div id="osmPreview"></div>
+                        <div style="margin-top: 10px; text-align: center;">
+                            <small style="color: #666;">
+                                <i class="fas fa-info-circle"></i> Visualisez l'emplacement exact sur OpenStreetMap
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="button-grid">
+                    <button type="submit" id="submit-btn" class="btn btn-success" disabled>
+                        <i class="fas fa-save"></i> Enregistrer l'établissement
+                    </button>
+                    <button type="button" id="preview-on-maps" class="btn btn-info" disabled>
+                        <i class="fas fa-external-link-alt"></i> Voir sur OSM
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Onglet Liste -->
+        <div class="tab-content" id="list-tab">
+            <h2 class="section-title">
+                <i class="fas fa-list"></i> Établissements
+                <span style="margin-left: auto; font-size: 0.9rem; color: #006b3f;" id="establishment-count">0</span>
+            </h2>
+            
+            <div class="button-grid">
+                <button type="button" id="select-all-btn" class="btn btn-info">
+                    <i class="fas fa-check-square"></i> Tout sélectionner
+                </button>
+                <button type="button" id="delete-selected-btn" class="btn btn-danger">
+                    <i class="fas fa-trash-alt"></i> Supprimer
+                </button>
+            </div>
+            
+            <div class="file-input-container">
+                <label class="file-input-label">
+                    <i class="fas fa-file-import"></i>
+                    <span>Importer un fichier JSON</span>
+                    <input type="file" id="import-json" class="file-input" accept=".json">
+                </label>
+                <div class="file-name" id="import-file-name"></div>
+            </div>
+            
+            <div class="establishment-list" id="establishment-list">
+                <div class="no-data">Aucun établissement enregistré</div>
+            </div>
+            
+            <div class="button-grid">
+                <button type="button" id="add-multiple-btn" class="btn btn-warning">
+                    <i class="fas fa-plus-circle"></i> Données de test
+                </button>
+                <button type="button" id="export-data-btn" class="btn btn-primary">
+                    <i class="fas fa-download"></i> Exporter JSON
+                </button>
+                <button type="button" id="view-on-map-btn" class="btn btn-map">
+                    <i class="fas fa-map"></i> Voir sur carte
+                </button>
+            </div>
+        </div>
+        
+        <!-- Onglet Carte -->
+        <div class="tab-content" id="map-tab">
+            <h2 class="section-title"><i class="fas fa-map-marked-alt"></i> Carte des établissements (OpenStreetMap)</h2>
+            
+            <div class="map-container">
+                <div id="map-placeholder" class="map-placeholder">
+                    <div class="map-loading"></div>
+                    <div>Chargement de la carte OpenStreetMap...</div>
+                </div>
+                <div id="map" style="display: none;"></div>
+            </div>
+            
+            <div class="result-panel" id="distance-result">
+                <!-- Résultats de distance -->
+            </div>
+            
+            <div class="button-grid">
+                <button type="button" id="get-my-location" class="btn btn-info">
+                    <i class="fas fa-location-arrow"></i> Me localiser
+                </button>
+                <button type="button" id="clear-map" class="btn btn-danger">
+                    <i class="fas fa-times"></i> Effacer les marqueurs
+                </button>
+                <button type="button" id="export-from-map" class="btn btn-kml">
+                    <i class="fas fa-download"></i> Exporter depuis carte
+                </button>
+                <button type="button" id="refresh-map" class="btn btn-primary">
+                    <i class="fas fa-sync-alt"></i> Actualiser carte
+                </button>
+            </div>
+        </div>
+        
+        <!-- Onglet Export -->
+        <div class="tab-content" id="export-tab">
+            <h2 class="section-title"><i class="fas fa-file-export"></i> Export cartographique</h2>
+            
+            <div class="location-panel">
+                <p><strong>Formats disponibles:</strong></p>
+                <div class="export-buttons">
+                    <button type="button" id="export-kml-btn" class="btn btn-kml">
+                        <i class="fas fa-file-code"></i> KML
+                    </button>
+                    <button type="button" id="export-gpx-btn" class="btn btn-gpx">
+                        <i class="fas fa-map-signs"></i> GPX
+                    </button>
+                    <button type="button" id="export-geojson-btn" class="btn btn-geojson">
+                        <i class="fas fa-globe"></i> GeoJSON
+                    </button>
+                    <button type="button" id="export-csv-btn" class="btn btn-csv">
+                        <i class="fas fa-file-csv"></i> CSV
+                    </button>
+                </div>
+                
+                <!-- Filtre pour les établissements -->
+                <div class="export-filter">
+                    <h4 style="margin-bottom: 15px; color: #2c3e50;">
+                        <i class="fas fa-filter"></i> Filtrer les établissements à exporter
+                    </h4>
+                    
+                    <div class="filter-options">
+                        <div class="filter-group">
+                            <label for="filter-region">Région</label>
+                            <select id="filter-region">
+                                <option value="">Toutes les régions</option>
+                                <option value="Maritime">Maritime</option>
+                                <option value="Plateaux">Plateaux</option>
+                                <option value="Centrale">Centrale</option>
+                                <option value="Kara">Kara</option>
+                                <option value="Savanes">Savanes</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="filter-type">Type d'établissement</label>
+                            <select id="filter-type">
+                                <option value="">Tous les types</option>
+                                <option value="CEG">CEG</option>
+                                <option value="Lycée">Lycée</option>
+                                <option value="École Primaire">École Primaire</option>
+                                <option value="Université">Université</option>
+                                <option value="Institut">Institut</option>
+                                <option value="Collège">Collège</option>
+                                <option value="École Maternelle">École Maternelle</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="filter-ville">Ville</label>
+                            <input type="text" id="filter-ville" placeholder="Toutes les villes">
+                        </div>
+                    </div>
+                    
+                    <div class="button-grid" style="margin-top: 15px;">
+                        <button type="button" id="apply-filters" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Appliquer les filtres
+                        </button>
+                        <button type="button" id="reset-filters" class="btn btn-secondary">
+                            <i class="fas fa-redo"></i> Réinitialiser
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="export-options" style="margin-top: 20px;">
+                    <h4 style="margin-bottom: 15px; color: #2c3e50;"><i class="fas fa-cog"></i> Options d'export</h4>
+                    
+                    <div class="export-option">
+                        <input type="checkbox" id="group-by-region" checked>
+                        <label for="group-by-region">Grouper par région</label>
+                    </div>
+                    
+                    <div class="export-option">
+                        <input type="checkbox" id="include-metadata" checked>
+                        <label for="include-metadata">Inclure les métadonnées</label>
+                    </div>
+                    
+                    <div class="export-option">
+                        <input type="checkbox" id="only-selected" checked>
+                        <label for="only-selected">Seulement les établissements sélectionnés</label>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <label for="export-filename">Nom du fichier:</label>
+                    <input type="text" id="export-filename" placeholder="etablissements_scolaires_togo" style="margin-top: 5px;">
+                </div>
+                
+                <div class="button-grid" style="margin-top: 20px;">
+                    <button type="button" id="export-all-formats" class="btn btn-primary">
+                        <i class="fas fa-file-archive"></i> Exporter tous formats
+                    </button>
+                </div>
+            </div>
+            
+            <div class="result-panel" id="export-result">
+                <!-- Résultats de l'export -->
+            </div>
+            
+            <div class="location-panel" style="margin-top: 20px;">
+                <h4 style="margin-bottom: 10px; color: #2c3e50;"><i class="fas fa-info-circle"></i> Formats d'export</h4>
+                <div style="font-size: 0.9rem; color: #666;">
+                    <p><strong>KML</strong> : Format Google Earth, compatible avec la plupart des logiciels SIG</p>
+                    <p><strong>GPX</strong> : Format standard pour les appareils GPS et applications de randonnée</p>
+                    <p><strong>GeoJSON</strong> : Format moderne pour le web et les applications SIG</p>
+                    <p><strong>CSV</strong> : Format tableur compatible avec Excel et autres logiciels</p>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Application de gestion des établissements scolaires du Togo</p>
+            <p style="margin-top: 5px;">© 2023 - Ministère de l'Éducation</p>
+            <p style="margin-top: 5px; font-size: 0.7rem;">
+                Cartes fournies par <a href="https://www.openstreetmap.org/copyright" target="_blank" style="color: #3498db;">OpenStreetMap</a>
+            </p>
+        </footer>
+    </div>
+    
+    <!-- Boutons flottants pour mobile -->
+    <div class="floating-buttons">
+        <button class="floating-btn location" id="floating-location" title="Me localiser">
+            <i class="fas fa-location-arrow"></i>
+        </button>
+        <button class="floating-btn export" id="floating-export" title="Exporter cartes">
+            <i class="fas fa-file-export"></i>
+        </button>
+        <button class="floating-btn list" id="floating-list" title="Voir la liste">
+            <i class="fas fa-list"></i>
+        </button>
+        <button class="floating-btn map" id="floating-map" title="Voir la carte">
+            <i class="fas fa-map"></i>
+        </button>
+    </div>
+
+    <!-- Leaflet JS (OpenStreetMap) -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+    
+    <script>
+        // ============================================
+        // INITIALISATION ET VARIABLES GLOBALES
+        // ============================================
+        
+        // Données des établissements
+        let establishments = JSON.parse(localStorage.getItem('togo_establishments')) || [];
+        let selectedEstablishments = new Set();
+        let currentFilters = {
+            region: '',
+            type: '',
+            ville: ''
+        };
+        
+        // Données des préfectures du Togo
+        const prefecturesByRegion = {
+            "Maritime": ["Golfe", "Lacs", "Vo", "Yoto", "Zio", "Avé", "Bas-Mono"],
+            "Plateaux": ["Ogou", "Amou", "Danyi", "Est-Mono", "Haho", "Kloto", "Moyen-Mono", "Wawa", "Akébou", "Kpélé", "Agou"],
+            "Centrale": ["Tchaoudjo", "Tchamba", "Sotouboua", "Blitta"],
+            "Kara": ["Kozah", "Bassar", "Binah", "Dankpen", "Doufelgou", "Kéran", "Assoli"],
+            "Savanes": ["Oti", "Tandjouaré", "Tône", "Cinkassé", "Kpendjal"]
+        };
+        
+        // BASE DE DONNÉES DES VILLES DU TOGO AVEC LEURS COORDONNÉES GPS
+        const togoCitiesGPS = {
+            "Lomé": { lat: 6.135842, lng: 1.210356, region: "Maritime", prefecture: "Golfe" },
+            "Aného": { lat: 6.229937, lng: 1.596367, region: "Maritime", prefecture: "Lacs" },
+            "Tsévié": { lat: 6.425819, lng: 1.213384, region: "Maritime", prefecture: "Zio" },
+            "Tabligbo": { lat: 6.583333, lng: 1.500000, region: "Maritime", prefecture: "Yoto" },
+            "Vogan": { lat: 6.333333, lng: 1.533333, region: "Maritime", prefecture: "Vo" },
+            "Kpalimé": { lat: 6.910000, lng: 0.630000, region: "Plateaux", prefecture: "Kloto" },
+            "Atakpamé": { lat: 7.533333, lng: 1.133333, region: "Plateaux", prefecture: "Ogou" },
+            "Badou": { lat: 7.583333, lng: 0.616667, region: "Plateaux", prefecture: "Wawa" },
+            "Sokodé": { lat: 8.986215, lng: 1.131524, region: "Centrale", prefecture: "Tchaoudjo" },
+            "Sotouboua": { lat: 8.563333, lng: 0.984167, region: "Centrale", prefecture: "Sotouboua" },
+            "Tchamba": { lat: 9.033333, lng: 1.416667, region: "Centrale", prefecture: "Tchamba" },
+            "Bafilo": { lat: 9.350000, lng: 1.266667, region: "Kara", prefecture: "Assoli" },
+            "Kara": { lat: 9.549824, lng: 1.189312, region: "Kara", prefecture: "Kozah" },
+            "Niamtougou": { lat: 9.768056, lng: 1.105278, region: "Kara", prefecture: "Doufelgou" },
+            "Bassar": { lat: 9.261111, lng: 0.782222, region: "Kara", prefecture: "Bassar" },
+            "Pagouda": { lat: 9.752500, lng: 1.327500, region: "Kara", prefecture: "Binah" },
+            "Kandé": { lat: 9.957778, lng: 1.044722, region: "Kara", prefecture: "Kéran" },
+            "Dapaong": { lat: 10.861111, lng: 0.205556, region: "Savanes", prefecture: "Tône" },
+            "Mango": { lat: 10.359167, lng: 0.470833, region: "Savanes", prefecture: "Oti" },
+            "Cinkassé": { lat: 11.100000, lng: 0.150000, region: "Savanes", prefecture: "Cinkassé" },
+            "Tandjouaré": { lat: 10.633333, lng: 0.516667, region: "Savanes", prefecture: "Tandjouaré" },
+            "Notsé": { lat: 6.950000, lng: 1.166667, region: "Plateaux", prefecture: "Haho" },
+            "Amlamé": { lat: 7.466667, lng: 0.900000, region: "Plateaux", prefecture: "Amou" },
+            "Kpélé": { lat: 7.033333, lng: 0.983333, region: "Plateaux", prefecture: "Kpélé" },
+            "Agou": { lat: 6.850000, lng: 0.783333, region: "Plateaux", prefecture: "Agou" },
+            "Danyi": { lat: 7.266667, lng: 0.683333, region: "Plateaux", prefecture: "Danyi" },
+            "Blitta": { lat: 8.333333, lng: 0.983333, region: "Centrale", prefecture: "Blitta" },
+            "Guérin-Kouka": { lat: 9.366667, lng: 1.200000, region: "Kara", prefecture: "Kozah" }
+        };
+        
+        // Variables pour OpenStreetMap (Leaflet)
+        let osmMap = null;
+        let osmPreviewMap = null;
+        let osmMarkers = [];
+        let osmPreviewMarker = null;
+        let osmUserMarker = null;
+        let osmAccuracyCircle = null;
+        let isMapsLoaded = false;
+        
+        // Variables pour le GPS
+        let gpsWatchId = null;
+        let currentGpsPosition = null;
+        let isGpsActive = false;
+        let isManualCoords = false;
+        let currentCityCoords = null;
+        let coordsSource = 'none'; // 'none', 'city', 'gps', 'manual', 'sample'
+        
+        // ============================================
+        // ÉLÉMENTS DOM
+        // ============================================
+        
+        // Navigation par onglets
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        // Formulaire
+        const form = document.getElementById('establishment-form');
+        const nameInput = document.getElementById('name');
+        const typeInput = document.getElementById('type');
+        const regionInput = document.getElementById('region');
+        const prefectureInput = document.getElementById('prefecture');
+        const villeInput = document.getElementById('ville');
+        const addressInput = document.getElementById('address');
+        const directorInput = document.getElementById('director');
+        const capacityInput = document.getElementById('capacity');
+        
+        // Génération automatique par ville
+        const autoGenerateSection = document.getElementById('auto-generate-section');
+        const selectedCityName = document.getElementById('selected-city-name');
+        const cityCoordsDisplay = document.getElementById('city-coords-display');
+        const cityLatitude = document.getElementById('city-latitude');
+        const cityLongitude = document.getElementById('city-longitude');
+        const adjustCityCoordsBtn = document.getElementById('adjust-city-coords');
+        const refreshCityCoordsBtn = document.getElementById('refresh-city-coords');
+        
+        // Coordonnées
+        const latitudeManualInput = document.getElementById('latitude-manual');
+        const longitudeManualInput = document.getElementById('longitude-manual');
+        const latitudeAutoInput = document.getElementById('latitude-auto');
+        const longitudeAutoInput = document.getElementById('longitude-auto');
+        const manualCoordsSection = document.getElementById('manual-coords-section');
+        const autoCoordsSection = document.getElementById('auto-coords-section');
+        const coordsSourceInfo = document.getElementById('coords-source-info');
+        const coordsSourceBadge = document.getElementById('coords-source-badge');
+        const latitudeSourceIndicator = document.getElementById('latitude-source-indicator');
+        const longitudeSourceIndicator = document.getElementById('longitude-source-indicator');
+        
+        // Boutons
+        const submitBtn = document.getElementById('submit-btn');
+        const previewOnMapsBtn = document.getElementById('preview-on-maps');
+        const enableManualCoordsBtn = document.getElementById('enable-manual-coords');
+        const useSampleCoordsBtn = document.getElementById('use-sample-coords');
+        const showOnMapBtn = document.getElementById('show-on-map-btn');
+        const viewOnMapBtn = document.getElementById('view-on-map-btn');
+        const refreshMapBtn = document.getElementById('refresh-map');
+        const exportFromMapBtn = document.getElementById('export-from-map');
+        
+        // GPS
+        const activateGpsBtn = document.getElementById('activate-gps');
+        const captureGpsBtn = document.getElementById('capture-gps');
+        const refreshGpsBtn = document.getElementById('refresh-gps');
+        const gpsStatusIndicator = document.getElementById('gps-status-indicator');
+        const gpsStatusText = document.getElementById('gps-status-text');
+        const gpsIcon = document.getElementById('gps-icon');
+        const gpsAccuracy = document.getElementById('gps-accuracy');
+        const gpsCoordinatesDisplay = document.getElementById('gps-coordinates-display');
+        const gpsCoordsValues = document.getElementById('gps-coords-values');
+        const gpsLocationName = document.getElementById('gps-location-name');
+        const gpsPrecisionInfo = document.getElementById('gps-precision-info');
+        const gpsPrecisionValue = document.getElementById('gps-precision-value');
+        
+        // Prévisualisation OSM
+        const mapPreviewSection = document.getElementById('map-preview-section');
+        const osmPreview = document.getElementById('osmPreview');
+        
+        // Status général
+        const gpsStatus = document.getElementById('gps-status');
+        
+        // Liste
+        const establishmentList = document.getElementById('establishment-list');
+        const establishmentCount = document.getElementById('establishment-count');
+        const selectAllBtn = document.getElementById('select-all-btn');
+        const deleteSelectedBtn = document.getElementById('delete-selected-btn');
+        const addMultipleBtn = document.getElementById('add-multiple-btn');
+        const exportDataBtn = document.getElementById('export-data-btn');
+        const importJsonInput = document.getElementById('import-json');
+        const importFileName = document.getElementById('import-file-name');
+        
+        // Carte
+        const mapContainer = document.getElementById('map');
+        const mapPlaceholder = document.getElementById('map-placeholder');
+        const getMyLocationBtn = document.getElementById('get-my-location');
+        const clearMapBtn = document.getElementById('clear-map');
+        
+        // Export
+        const exportKmlBtn = document.getElementById('export-kml-btn');
+        const exportGpxBtn = document.getElementById('export-gpx-btn');
+        const exportGeojsonBtn = document.getElementById('export-geojson-btn');
+        const exportCsvBtn = document.getElementById('export-csv-btn');
+        const exportAllFormatsBtn = document.getElementById('export-all-formats');
+        const exportFilenameInput = document.getElementById('export-filename');
+        const filterRegion = document.getElementById('filter-region');
+        const filterType = document.getElementById('filter-type');
+        const filterVille = document.getElementById('filter-ville');
+        const applyFiltersBtn = document.getElementById('apply-filters');
+        const resetFiltersBtn = document.getElementById('reset-filters');
+        
+        // Résultats
+        const distanceResult = document.getElementById('distance-result');
+        const exportResult = document.getElementById('export-result');
+        const alertMessage = document.getElementById('alert-message');
+        
+        // Boutons flottants
+        const floatingLocationBtn = document.getElementById('floating-location');
+        const floatingExportBtn = document.getElementById('floating-export');
+        const floatingListBtn = document.getElementById('floating-list');
+        const floatingMapBtn = document.getElementById('floating-map');
+        
+        // ============================================
+        // FONCTIONS UTILITAIRES
+        // ============================================
+        
+        // Afficher une alerte
+        function showAlert(message, type = 'success', duration = 4000) {
+            alertMessage.textContent = message;
+            alertMessage.className = `alert alert-${type}`;
+            alertMessage.style.display = 'block';
+            
+            setTimeout(() => {
+                alertMessage.style.display = 'none';
+            }, duration);
+        }
+        
+        // Changer d'onglet
+        function switchTab(tabId) {
+            tabs.forEach(tab => tab.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
+            document.getElementById(`${tabId}-tab`).classList.add('active');
+            
+            if (tabId === 'map') {
+                setTimeout(() => {
+                    initOSMMap();
+                }, 100);
+            }
+            
+            if (tabId === 'list') {
+                displayEstablishments();
+            }
+        }
+        
+        // Valider les coordonnées GPS
+        function validateCoordinates(lat, lng) {
+            if (!lat || !lng) return false;
+            const numLat = parseFloat(lat);
+            const numLng = parseFloat(lng);
+            return !isNaN(numLat) && !isNaN(numLng) && 
+                   numLat >= -90 && numLat <= 90 && 
+                   numLng >= -180 && numLng <= 180;
+        }
+        
+        // Vérifier si une ville est dans la base de données
+        function findCityCoordinates(cityName) {
+            const normalizedCityName = cityName.trim().toLowerCase();
+            
+            // Recherche exacte
+            for (const city in togoCitiesGPS) {
+                if (city.toLowerCase() === normalizedCityName) {
+                    return togoCitiesGPS[city];
+                }
+            }
+            
+            // Vérification partielle pour les noms similaires
+            for (const city in togoCitiesGPS) {
+                if (city.toLowerCase().includes(normalizedCityName) || 
+                    normalizedCityName.includes(city.toLowerCase())) {
+                    return togoCitiesGPS[city];
+                }
+            }
+            
+            return null;
+        }
+        
+        // Mettre à jour l'affichage de la source des coordonnées
+        function updateCoordsSourceDisplay(source) {
+            coordsSource = source;
+            
+            // Mettre à jour le badge principal
+            coordsSourceBadge.style.display = 'inline-block';
+            
+            // Mettre à jour les indicateurs de champ
+            let sourceText = '';
+            let sourceClass = '';
+            
+            switch(source) {
+                case 'city':
+                    sourceText = 'Ville';
+                    sourceClass = 'coords-source-city';
+                    coordsSourceInfo.innerHTML = `<i class="fas fa-city"></i> Coordonnées de la ville ${villeInput.value}`;
+                    break;
+                case 'gps':
+                    sourceText = 'GPS';
+                    sourceClass = 'coords-source-gps';
+                    if (currentGpsPosition) {
+                        const accuracy = Math.round(currentGpsPosition.coords.accuracy);
+                        coordsSourceInfo.innerHTML = `<i class="fas fa-satellite"></i> GPS haute précision (±${accuracy}m)`;
+                    } else {
+                        coordsSourceInfo.innerHTML = `<i class="fas fa-satellite"></i> GPS`;
+                    }
+                    break;
+                case 'manual':
+                    sourceText = 'Manuel';
+                    sourceClass = 'coords-source-manual';
+                    coordsSourceInfo.innerHTML = `<i class="fas fa-keyboard"></i> Saisie manuelle`;
+                    break;
+                case 'sample':
+                    sourceText = 'Exemple';
+                    sourceClass = 'coords-source-sample';
+                    coordsSourceInfo.innerHTML = `<i class="fas fa-map-pin"></i> Coordonnées d'exemple (Lomé)`;
+                    break;
+                default:
+                    sourceText = 'Source';
+                    sourceClass = '';
+                    coordsSourceInfo.innerHTML = `<i class="fas fa-info-circle"></i> Utilisez le GPS, saisissez une ville togolaise, ou utilisez la saisie manuelle`;
+            }
+            
+            // Mettre à jour le badge principal
+            coordsSourceBadge.textContent = sourceText;
+            coordsSourceBadge.className = `coords-source-badge ${sourceClass}`;
+            
+            // Mettre à jour les indicateurs de champ
+            latitudeSourceIndicator.textContent = sourceText;
+            latitudeSourceIndicator.className = `coords-source-indicator ${sourceClass}`;
+            longitudeSourceIndicator.textContent = sourceText;
+            longitudeSourceIndicator.className = `coords-source-indicator ${sourceClass}`;
+            
+            // Mettre à jour le statut GPS
+            if (source === 'city') {
+                gpsStatus.textContent = `Coordonnées de ${villeInput.value}`;
+                gpsStatus.style.color = '#27ae60';
+            } else if (source === 'gps') {
+                gpsStatus.textContent = 'Position GPS capturée';
+                gpsStatus.style.color = '#27ae60';
+            } else if (source === 'manual') {
+                gpsStatus.textContent = 'Saisie manuelle';
+                gpsStatus.style.color = '#e67e22';
+            } else if (source === 'sample') {
+                gpsStatus.textContent = 'Coordonnées exemple (Lomé)';
+                gpsStatus.style.color = '#f39c12';
+            } else {
+                gpsStatus.textContent = 'En attente de coordonnées';
+                gpsStatus.style.color = '#666';
+            }
+        }
+        
+        // ============================================
+        // GÉNÉRATION AUTOMATIQUE DES COORDONNÉES PAR VILLE
+        // ============================================
+        
+        // Vérifier la ville saisie et générer automatiquement les coordonnées
+        function checkCityForCoordinates() {
+            const cityName = villeInput.value.trim();
+            
+            if (!cityName) {
+                autoGenerateSection.style.display = 'none';
+                currentCityCoords = null;
+                return;
+            }
+            
+            const cityData = findCityCoordinates(cityName);
+            
+            if (cityData) {
+                // Afficher la section de génération automatique
+                selectedCityName.textContent = cityName;
+                cityLatitude.textContent = cityData.lat.toFixed(6);
+                cityLongitude.textContent = cityData.lng.toFixed(6);
+                cityCoordsDisplay.innerHTML = `Latitude: <strong>${cityData.lat.toFixed(6)}</strong>, Longitude: <strong>${cityData.lng.toFixed(6)}</strong>`;
+                
+                autoGenerateSection.style.display = 'block';
+                currentCityCoords = cityData;
+                
+                // Mettre à jour automatiquement les coordonnées dans le formulaire
+                updateFormWithCityCoords(cityData);
+                
+                // Mettre à jour automatiquement la région et préfecture si vides
+                if (!regionInput.value && cityData.region) {
+                    regionInput.value = cityData.region;
+                    
+                    // Mettre à jour les préfectures pour cette région
+                    if (prefecturesByRegion[cityData.region]) {
+                        prefectureInput.innerHTML = '<option value="">Sélectionnez une préfecture</option>';
+                        prefecturesByRegion[cityData.region].forEach(pref => {
+                            const option = document.createElement('option');
+                            option.value = pref;
+                            option.textContent = pref;
+                            prefectureInput.appendChild(option);
+                        });
+                        
+                        // Sélectionner la préfecture correspondante si disponible
+                        if (cityData.prefecture) {
+                            prefectureInput.value = cityData.prefecture;
+                        }
+                    }
+                }
+                
+                showAlert(`Ville "${cityName}" reconnue. Coordonnées GPS automatiquement remplies.`, 'success');
+            } else {
+                autoGenerateSection.style.display = 'none';
+                currentCityCoords = null;
+            }
+            
+            validateForm();
+        }
+        
+        // Mettre à jour le formulaire avec les coordonnées de la ville
+        function updateFormWithCityCoords(cityData) {
+            if (isManualCoords) {
+                latitudeManualInput.value = cityData.lat.toFixed(6);
+                longitudeManualInput.value = cityData.lng.toFixed(6);
+            } else {
+                latitudeAutoInput.value = cityData.lat.toFixed(6);
+                longitudeAutoInput.value = cityData.lng.toFixed(6);
+            }
+            
+            updateCoordsSourceDisplay('city');
+            validateForm();
+            showOSMPreview(cityData.lat, cityData.lng);
+        }
+        
+        // Ajuster manuellement les coordonnées de la ville
+        function adjustCityCoordinates() {
+            enableManualCoordinates();
+            autoGenerateSection.style.display = 'none';
+            showAlert('Mode saisie manuelle activé. Vous pouvez ajuster les coordonnées.', 'info');
+        }
+        
+        // Actualiser les coordonnées de la ville
+        function refreshCityCoordinates() {
+            if (!currentCityCoords) return;
+            
+            updateFormWithCityCoords(currentCityCoords);
+            showAlert('Coordonnées de la ville actualisées', 'success');
+        }
+        
+        // ============================================
+        // GESTION DES COORDONNÉES ET CARTE
+        // ============================================
+        
+        // Activer la saisie manuelle des coordonnées
+        function enableManualCoordinates() {
+            isManualCoords = true;
+            manualCoordsSection.style.display = 'block';
+            autoCoordsSection.style.display = 'none';
+            enableManualCoordsBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Revenir au GPS';
+            enableManualCoordsBtn.classList.remove('btn-secondary');
+            enableManualCoordsBtn.classList.add('btn-warning');
+            
+            // Désactiver le GPS si actif
+            if (isGpsActive) {
+                deactivateGps();
+            }
+            
+            // Masquer la section de génération automatique
+            autoGenerateSection.style.display = 'none';
+            
+            // Si on a des coordonnées de ville, les transférer vers les champs manuels
+            if (currentCityCoords && !latitudeManualInput.value && !longitudeManualInput.value) {
+                latitudeManualInput.value = currentCityCoords.lat.toFixed(6);
+                longitudeManualInput.value = currentCityCoords.lng.toFixed(6);
+            }
+            
+            updateCoordsSourceDisplay('manual');
+            showAlert('Saisie manuelle activée. Remplissez les coordonnées ci-dessous.', 'info');
+            
+            validateForm();
+        }
+        
+        // Désactiver la saisie manuelle et revenir au GPS
+        function disableManualCoordinates() {
+            isManualCoords = false;
+            manualCoordsSection.style.display = 'none';
+            autoCoordsSection.style.display = 'block';
+            enableManualCoordsBtn.innerHTML = '<i class="fas fa-keyboard"></i> Saisie manuelle';
+            enableManualCoordsBtn.classList.remove('btn-warning');
+            enableManualCoordsBtn.classList.add('btn-secondary');
+            
+            // Si on a des coordonnées manuelles, les transférer vers les champs auto
+            if (latitudeManualInput.value && longitudeManualInput.value) {
+                latitudeAutoInput.value = latitudeManualInput.value;
+                longitudeAutoInput.value = longitudeManualInput.value;
+            }
+            
+            showAlert('Mode GPS réactivé. Utilisez le bouton "Activer GPS" pour obtenir votre position.', 'info');
+            
+            validateForm();
+        }
+        
+        // Utiliser des coordonnées d'exemple (Lomé)
+        function useSampleCoordinates() {
+            if (isManualCoords) {
+                latitudeManualInput.value = 6.135842;
+                longitudeManualInput.value = 1.210356;
+            } else {
+                latitudeAutoInput.value = 6.135842;
+                longitudeAutoInput.value = 1.210356;
+            }
+            
+            updateCoordsSourceDisplay('sample');
+            validateForm();
+            showOSMPreview(6.135842, 1.210356);
+            
+            showAlert('Coordonnées d\'exemple (Lomé) appliquées', 'success');
+        }
+        
+        // Voir les coordonnées sur la carte (depuis le formulaire)
+        function showCoordinatesOnMap() {
+            let lat, lng;
+            
+            if (isManualCoords) {
+                lat = parseFloat(latitudeManualInput.value);
+                lng = parseFloat(longitudeManualInput.value);
+            } else {
+                lat = parseFloat(latitudeAutoInput.value);
+                lng = parseFloat(longitudeAutoInput.value);
+            }
+            
+            if (!validateCoordinates(lat, lng)) {
+                showAlert('Veuillez d\'abord saisir ou capturer des coordonnées GPS valides', 'error');
+                return;
+            }
+            
+            switchTab('map');
+            
+            setTimeout(() => {
+                if (!osmMap) {
+                    initOSMMap();
+                }
+                
+                if (osmMap) {
+                    const position = [lat, lng];
+                    osmMap.setView(position, 17);
+                    
+                    // Effacer les marqueurs existants
+                    osmMarkers.forEach(marker => marker.remove());
+                    osmMarkers = [];
+                    
+                    // Ajouter un marqueur pour ces coordonnées
+                    const marker = L.marker(position).addTo(osmMap);
+                    marker.bindPopup(`
+                        <div style="max-width: 250px; padding: 10px;">
+                            <h3 style="margin: 0 0 5px 0; color: #006b3f;">Coordonnées saisies</h3>
+                            <p style="margin: 0 0 5px 0; font-size: 0.9em;">
+                                <strong>Latitude:</strong> ${lat.toFixed(6)}<br>
+                                <strong>Longitude:</strong> ${lng.toFixed(6)}
+                            </p>
+                            ${nameInput.value ? `<p style="margin: 0 0 5px 0; font-size: 0.9em;"><strong>Pour:</strong> ${nameInput.value}</p>` : ''}
+                        </div>
+                    `);
+                    
+                    osmMarkers.push(marker);
+                    
+                    showAlert('Coordonnées affichées sur la carte', 'success');
+                }
+            }, 500);
+        }
+        
+        // Voir la liste des établissements sur la carte
+        function showListOnMap() {
+            if (establishments.length === 0) {
+                showAlert('Aucun établissement à afficher sur la carte', 'error');
+                return;
+            }
+            
+            switchTab('map');
+            
+            setTimeout(() => {
+                if (!osmMap) {
+                    initOSMMap();
+                }
+                
+                if (osmMap) {
+                    updateOSMMap();
+                    showAlert(`${establishments.length} établissement(s) affiché(s) sur la carte`, 'success');
+                }
+            }, 500);
+        }
+        
+        // Valider le formulaire
+        function validateForm() {
+            // Vérifier les champs obligatoires
+            const requiredFields = [nameInput, typeInput, regionInput, prefectureInput, villeInput, addressInput];
+            const isFormValid = requiredFields.every(field => field.value.trim() !== '');
+            
+            // Vérifier les coordonnées selon le mode
+            let coordsValid = false;
+            if (isManualCoords) {
+                coordsValid = validateCoordinates(latitudeManualInput.value, longitudeManualInput.value);
+            } else {
+                coordsValid = validateCoordinates(latitudeAutoInput.value, longitudeAutoInput.value);
+            }
+            
+            const finalValid = isFormValid && coordsValid;
+            
+            submitBtn.disabled = !finalValid;
+            previewOnMapsBtn.disabled = !coordsValid;
+            showOnMapBtn.disabled = !coordsValid;
+            
+            return finalValid;
+        }
+        
+        // ============================================
+        // FONCTIONS GPS
+        // ============================================
+        
+        // Activer/désactiver le GPS
+        function toggleGps() {
+            if (!isGpsActive) {
+                activateGps();
+            } else {
+                deactivateGps();
+            }
+        }
+        
+        // Activer le GPS
+        function activateGps() {
+            if (!navigator.geolocation) {
+                showAlert('La géolocalisation n\'est pas supportée par votre navigateur', 'error');
+                return;
+            }
+            
+            showAlert('Activation du GPS en cours...', 'info');
+            activateGpsBtn.disabled = true;
+            activateGpsBtn.innerHTML = '<span class="loading"></span> Activation GPS...';
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    startGpsTracking();
+                    activateGpsBtn.disabled = false;
+                    captureGpsPosition();
+                },
+                (error) => {
+                    activateGpsBtn.disabled = false;
+                    activateGpsBtn.innerHTML = '<i class="fas fa-location-arrow"></i> Activer GPS';
+                    
+                    let errorMessage = 'Impossible d\'activer le GPS. ';
+                    switch(error.code) {
+                        case 1:
+                            errorMessage += 'Permission refusée. Veuillez autoriser la géolocalisation dans les paramètres de votre navigateur.';
+                            break;
+                        case 2:
+                            errorMessage += 'Position indisponible. Vérifiez que votre GPS est activé.';
+                            break;
+                        case 3:
+                            errorMessage += 'Délai d\'attente dépassé.';
+                            break;
+                        default:
+                            errorMessage += 'Erreur inconnue.';
+                    }
+                    showAlert(errorMessage, 'error');
+                    updateGpsStatus(false, 'Erreur GPS', 'error');
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 0
+                }
+            );
+        }
+        
+        // Démarrer la surveillance GPS
+        function startGpsTracking() {
+            if (gpsWatchId) {
+                navigator.geolocation.clearWatch(gpsWatchId);
+            }
+            
+            gpsWatchId = navigator.geolocation.watchPosition(
+                (position) => {
+                    currentGpsPosition = position;
+                    isGpsActive = true;
+                    
+                    const accuracy = position.coords.accuracy;
+                    
+                    updateGpsStatus(true, 'GPS actif', 'active', accuracy);
+                    captureGpsBtn.disabled = false;
+                    refreshGpsBtn.disabled = false;
+                    
+                    if (gpsCoordinatesDisplay.style.display === 'block') {
+                        updateGpsCoordinatesDisplay();
+                    }
+                },
+                (error) => {
+                    console.error('Erreur GPS:', error);
+                    updateGpsStatus(false, 'Erreur GPS', 'error');
+                    captureGpsBtn.disabled = true;
+                    refreshGpsBtn.disabled = true;
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+        
+        // Désactiver le GPS
+        function deactivateGps() {
+            if (gpsWatchId) {
+                navigator.geolocation.clearWatch(gpsWatchId);
+                gpsWatchId = null;
+            }
+            
+            isGpsActive = false;
+            currentGpsPosition = null;
+            
+            updateGpsStatus(false, 'GPS désactivé', 'inactive');
+            captureGpsBtn.disabled = true;
+            refreshGpsBtn.disabled = true;
+            gpsCoordinatesDisplay.style.display = 'none';
+            
+            showAlert('GPS désactivé', 'info');
+        }
+        
+        // Mettre à jour l'affichage du statut GPS
+        function updateGpsStatus(active, text, status, accuracy = null) {
+            if (active) {
+                gpsStatusIndicator.classList.add('active');
+                gpsIcon.style.color = '#27ae60';
+                gpsIcon.className = 'fas fa-satellite-dish';
+            } else {
+                gpsStatusIndicator.classList.remove('active');
+                if (status === 'error') {
+                    gpsIcon.style.color = '#e74c3c';
+                    gpsIcon.className = 'fas fa-exclamation-triangle';
+                } else {
+                    gpsIcon.style.color = '#666';
+                    gpsIcon.className = 'fas fa-satellite';
+                }
+            }
+            
+            gpsStatusText.textContent = text;
+            
+            if (accuracy !== null) {
+                const accuracyText = getAccuracyText(accuracy);
+                gpsAccuracy.textContent = `Précision: ${accuracy.toFixed(1)} mètres`;
+                gpsAccuracy.className = `gps-accuracy accuracy-${accuracyText}`;
+            } else {
+                gpsAccuracy.textContent = 'Précision: Indisponible';
+                gpsAccuracy.className = 'gps-accuracy';
+            }
+            
+            activateGpsBtn.innerHTML = active ? 
+                '<i class="fas fa-stop-circle"></i> Désactiver GPS' : 
+                '<i class="fas fa-location-arrow"></i> Activer GPS';
+            activateGpsBtn.disabled = false;
+        }
+        
+        // Obtenir le texte de précision
+        function getAccuracyText(accuracy) {
+            if (accuracy <= 10) return 'good';
+            if (accuracy <= 30) return 'medium';
+            return 'poor';
+        }
+        
+        // Capturer la position GPS actuelle
+        function captureGpsPosition() {
+            if (!currentGpsPosition) {
+                showAlert('Aucune position GPS disponible. Activez d\'abord le GPS.', 'error');
+                return;
+            }
+            
+            const { latitude, longitude, accuracy } = currentGpsPosition.coords;
+            
+            gpsCoordinatesDisplay.style.display = 'block';
+            updateGpsCoordinatesDisplay();
+            
+            latitudeAutoInput.value = latitude.toFixed(6);
+            longitudeAutoInput.value = longitude.toFixed(6);
+            
+            updateCoordsSourceDisplay('gps');
+            validateForm();
+            showOSMPreview(latitude, longitude);
+            
+            showAlert(`Position GPS capturée avec précision: ${accuracy.toFixed(1)} mètres`, 'success');
+        }
+        
+        // Mettre à jour l'affichage des coordonnées GPS
+        function updateGpsCoordinatesDisplay() {
+            if (!currentGpsPosition) return;
+            
+            const { latitude, longitude, accuracy } = currentGpsPosition.coords;
+            
+            gpsCoordsValues.textContent = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+            gpsLocationName.textContent = 'Position actuelle';
+            gpsPrecisionValue.textContent = `${accuracy.toFixed(1)} mètres`;
+            
+            const accuracyText = getAccuracyText(accuracy);
+            const colors = {
+                'good': '#27ae60',
+                'medium': '#f39c12',
+                'poor': '#e74c3c'
+            };
+            gpsPrecisionInfo.querySelector('i').style.color = colors[accuracyText];
+        }
+        
+        // Rafraîchir la position GPS
+        function refreshGpsPosition() {
+            if (!navigator.geolocation) return;
+            
+            captureGpsBtn.disabled = true;
+            refreshGpsBtn.disabled = true;
+            refreshGpsBtn.innerHTML = '<span class="loading"></span> Actualisation...';
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    currentGpsPosition = position;
+                    updateGpsCoordinatesDisplay();
+                    
+                    if (!isManualCoords) {
+                        latitudeAutoInput.value = position.coords.latitude.toFixed(6);
+                        longitudeAutoInput.value = position.coords.longitude.toFixed(6);
+                        showOSMPreview(position.coords.latitude, position.coords.longitude);
+                    }
+                    
+                    captureGpsBtn.disabled = false;
+                    refreshGpsBtn.disabled = false;
+                    refreshGpsBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Actualiser';
+                    
+                    showAlert('Position GPS actualisée', 'success');
+                },
+                (error) => {
+                    captureGpsBtn.disabled = false;
+                    refreshGpsBtn.disabled = false;
+                    refreshGpsBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Actualiser';
+                    
+                    showAlert('Impossible d\'actualiser la position GPS', 'error');
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+        
+        // ============================================
+        // OPENSTREETMAP FUNCTIONS (LEAFLET)
+        // ============================================
+        
+        // Initialiser OpenStreetMap
+        function initOSMMap() {
+            if (typeof L === 'undefined') {
+                console.error('Leaflet (OpenStreetMap) n\'est pas chargé');
+                showAlert('OpenStreetMap n\'est pas disponible. Vérifiez votre connexion internet.', 'error');
+                mapPlaceholder.innerHTML = `
+                    <div style="text-align: center;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #e74c3c; margin-bottom: 15px;"></i>
+                        <div>Impossible de charger OpenStreetMap</div>
+                        <div style="font-size: 0.8rem; margin-top: 10px; color: #666;">
+                            Vérifiez votre connexion internet et réessayez
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            try {
+                if (!osmMap && mapContainer) {
+                    // Cacher le placeholder et montrer la carte
+                    mapPlaceholder.style.display = 'none';
+                    mapContainer.style.display = 'block';
+                    
+                    // Créer la carte
+                    osmMap = L.map('map').setView([8.6195, 0.8248], 7);
+                    
+                    // Ajouter la couche OpenStreetMap
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributeurs',
+                        maxZoom: 19
+                    }).addTo(osmMap);
+                    
+                    // Ajouter le contrôle de mise à l'échelle
+                    L.control.scale().addTo(osmMap);
+                    
+                    isMapsLoaded = true;
+                    
+                    if (establishments.length > 0) {
+                        updateOSMMap();
+                    }
+                    
+                    console.log('OpenStreetMap initialisée avec succès');
+                    showAlert('Carte OpenStreetMap chargée avec succès', 'success', 2000);
+                }
+            } catch (error) {
+                console.error('Erreur lors de l\'initialisation d\'OpenStreetMap:', error);
+                showAlert('Erreur lors du chargement de la carte: ' + error.message, 'error');
+                mapPlaceholder.style.display = 'flex';
+                mapContainer.style.display = 'none';
+                mapPlaceholder.innerHTML = `
+                    <div style="text-align: center;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #e74c3c; margin-bottom: 15px;"></i>
+                        <div>Erreur de chargement de la carte</div>
+                        <div style="font-size: 0.8rem; margin-top: 10px; color: #666;">
+                            ${error.message || 'Erreur inconnue'}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // Actualiser la carte
+        function refreshOSMMap() {
+            if (!osmMap) {
+                initOSMMap();
+            } else {
+                // Invalider la taille de la carte pour forcer un redimensionnement
+                setTimeout(() => {
+                    osmMap.invalidateSize();
+                }, 100);
+                updateOSMMap();
+                showAlert('Carte actualisée', 'success');
+            }
+        }
+        
+        // Afficher la prévisualisation OSM
+        function showOSMPreview(latitude, longitude) {
+            if (!validateCoordinates(latitude, longitude)) {
+                return;
+            }
+            
+            mapPreviewSection.style.display = 'block';
+            
+            if (typeof L === 'undefined') {
+                showAlert('OpenStreetMap n\'est pas disponible pour la prévisualisation', 'error');
+                return;
+            }
+            
+            if (!osmPreviewMap) {
+                try {
+                    osmPreviewMap = L.map('osmPreview').setView([latitude, longitude], 17);
+                    
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap contributeurs',
+                        maxZoom: 19
+                    }).addTo(osmPreviewMap);
+                    
+                    L.control.scale().addTo(osmPreviewMap);
+                } catch (error) {
+                    console.error('Erreur lors de l\'initialisation de la carte de prévisualisation:', error);
+                    return;
+                }
+            } else {
+                osmPreviewMap.setView([latitude, longitude], 17);
+            }
+            
+            if (osmPreviewMarker) {
+                osmPreviewMarker.remove();
+            }
+            
+            osmPreviewMarker = L.marker([latitude, longitude]).addTo(osmPreviewMap);
+            osmPreviewMarker.bindPopup('Position de l\'établissement');
+            
+            // Invalider la taille pour s'assurer que la carte s'affiche correctement
+            setTimeout(() => {
+                if (osmPreviewMap) {
+                    osmPreviewMap.invalidateSize();
+                }
+            }, 100);
+            
+            previewOnMapsBtn.disabled = false;
+        }
+        
+        // Mettre à jour la carte OSM principale
+        function updateOSMMap() {
+            if (!osmMap) return;
+            
+            osmMarkers.forEach(marker => marker.remove());
+            osmMarkers = [];
+            
+            if (establishments.length === 0) {
+                return;
+            }
+            
+            const bounds = [];
+            
+            establishments.forEach(establishment => {
+                if (establishment.latitude && establishment.longitude) {
+                    const position = [establishment.latitude, establishment.longitude];
+                    bounds.push(position);
+                    
+                    // Choisir une couleur selon le type d'établissement
+                    let markerColor = 'red';
+                    switch(establishment.type) {
+                        case 'CEG': markerColor = 'blue'; break;
+                        case 'Lycée': markerColor = 'green'; break;
+                        case 'École Primaire': markerColor = 'orange'; break;
+                        case 'Université': markerColor = 'purple'; break;
+                        case 'Institut': markerColor = 'lightblue'; break;
+                        case 'Collège': markerColor = 'darkorange'; break;
+                        case 'École Maternelle': markerColor = 'pink'; break;
+                    }
+                    
+                    // Créer une icône personnalisée
+                    const customIcon = L.divIcon({
+                        html: `<div style="background-color: ${markerColor}; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>`,
+                        className: 'custom-marker-icon',
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12]
+                    });
+                    
+                    const marker = L.marker(position, { icon: customIcon }).addTo(osmMap);
+                    
+                    const popupContent = `
+                        <div style="max-width: 250px; padding: 10px;">
+                            <h3 style="margin: 0 0 5px 0; color: #006b3f;">${establishment.name}</h3>
+                            <p style="margin: 0 0 5px 0; font-size: 0.9em;">
+                                <strong>Type:</strong> ${establishment.type}<br>
+                                <strong>Région:</strong> ${establishment.region}<br>
+                                <strong>Ville:</strong> ${establishment.ville}<br>
+                                <strong>Adresse:</strong> ${establishment.address || 'Non spécifiée'}
+                            </p>
+                            ${establishment.director ? `<p style="margin: 0 0 5px 0; font-size: 0.9em;"><strong>Directeur:</strong> ${establishment.director}</p>` : ''}
+                            ${establishment.capacity ? `<p style="margin: 0 0 5px 0; font-size: 0.9em;"><strong>Capacité:</strong> ${establishment.capacity} élèves</p>` : ''}
+                            <p style="margin: 0; font-size: 0.8em; color: #666;">
+                                Coordonnées: ${establishment.latitude.toFixed(6)}, ${establishment.longitude.toFixed(6)}
+                            </p>
+                        </div>
+                    `;
+                    
+                    marker.bindPopup(popupContent);
+                    osmMarkers.push(marker);
+                }
+            });
+            
+            if (bounds.length > 0) {
+                if (bounds.length === 1) {
+                    osmMap.setView(bounds[0], 15);
+                } else {
+                    const latlngBounds = L.latLngBounds(bounds);
+                    osmMap.fitBounds(latlngBounds);
+                }
+            }
+        }
+        
+        // Obtenir la localisation de l'utilisateur sur OSM
+        function getUserLocationOnMap() {
+            if (!navigator.geolocation) {
+                showAlert('La géolocalisation n\'est pas supportée par votre navigateur', 'error');
+                return;
+            }
+            
+            getMyLocationBtn.innerHTML = '<span class="loading"></span> Localisation...';
+            getMyLocationBtn.disabled = true;
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude, accuracy } = position.coords;
+                    
+                    if (!osmMap) {
+                        initOSMMap();
+                    }
+                    
+                    if (!osmMap) {
+                        getMyLocationBtn.innerHTML = '<i class="fas fa-location-arrow"></i> Me localiser';
+                        getMyLocationBtn.disabled = false;
+                        showAlert('La carte n\'est pas disponible', 'error');
+                        return;
+                    }
+                    
+                    const userPosition = [latitude, longitude];
+                    osmMap.setView(userPosition, 15);
+                    
+                    if (osmUserMarker) {
+                        osmUserMarker.remove();
+                    }
+                    
+                    // Icône personnalisée pour la position de l'utilisateur
+                    const userIcon = L.divIcon({
+                        html: `<div style="background-color: #3498db; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 8px rgba(52, 152, 219, 0.8); display: flex; align-items: center; justify-content: center;">
+                                 <i class="fas fa-user" style="color: white; font-size: 12px;"></i>
+                               </div>`,
+                        className: 'user-marker-icon',
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15]
+                    });
+                    
+                    osmUserMarker = L.marker(userPosition, { icon: userIcon }).addTo(osmMap);
+                    osmUserMarker.bindPopup('Votre position actuelle');
+                    
+                    if (osmAccuracyCircle) {
+                        osmAccuracyCircle.remove();
+                    }
+                    
+                    osmAccuracyCircle = L.circle(userPosition, {
+                        color: '#3498db',
+                        fillColor: '#3498db',
+                        fillOpacity: 0.2,
+                        radius: accuracy
+                    }).addTo(osmMap);
+                    
+                    getMyLocationBtn.innerHTML = '<i class="fas fa-location-arrow"></i> Me localiser';
+                    getMyLocationBtn.disabled = false;
+                    
+                    showAlert(`Position obtenue avec précision: ±${Math.round(accuracy)}m`, 'success');
+                },
+                (error) => {
+                    getMyLocationBtn.innerHTML = '<i class="fas fa-location-arrow"></i> Me localiser';
+                    getMyLocationBtn.disabled = false;
+                    
+                    let errorMessage = 'Impossible d\'obtenir votre position. ';
+                    switch(error.code) {
+                        case 1:
+                            errorMessage += 'Permission refusée.';
+                            break;
+                        case 2:
+                            errorMessage += 'Position indisponible.';
+                            break;
+                        case 3:
+                            errorMessage += 'Délai d\'attente dépassé.';
+                            break;
+                        default:
+                            errorMessage += 'Erreur inconnue.';
+                    }
+                    showAlert(errorMessage, 'error');
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+        
+        // Effacer les marqueurs de la carte
+        function clearMapMarkers() {
+            if (!osmMap) return;
+            
+            osmMarkers.forEach(marker => marker.remove());
+            osmMarkers = [];
+            
+            if (osmUserMarker) {
+                osmUserMarker.remove();
+                osmUserMarker = null;
+            }
+            
+            if (osmAccuracyCircle) {
+                osmAccuracyCircle.remove();
+                osmAccuracyCircle = null;
+            }
+            
+            showAlert('Marqueurs effacés', 'info');
+        }
+        
+        // Ouvrir OpenStreetMap dans une nouvelle fenêtre
+        function openInOSM() {
+            let lat, lng;
+            
+            if (isManualCoords) {
+                lat = latitudeManualInput.value;
+                lng = longitudeManualInput.value;
+            } else {
+                lat = latitudeAutoInput.value;
+                lng = longitudeAutoInput.value;
+            }
+            
+            const name = nameInput.value || 'Établissement';
+            
+            if (!validateCoordinates(lat, lng)) {
+                showAlert('Coordonnées GPS invalides', 'error');
+                return;
+            }
+            
+            const url = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}&zoom=17#map=17/${lat}/${lng}`;
+            window.open(url, '_blank');
+        }
+        
+        // Exporter depuis la carte
+        function exportFromMap() {
+            switchTab('export');
+            showAlert('Onglet Export ouvert. Sélectionnez les formats souhaités.', 'info');
+        }
+        
+        // ============================================
+        // GESTION DES ÉTABLISSEMENTS
+        // ============================================
+        
+        // Afficher les établissements
+        function displayEstablishments() {
+            const listContainer = document.getElementById('establishment-list');
+            const countElement = document.getElementById('establishment-count');
+            
+            if (establishments.length === 0) {
+                listContainer.innerHTML = '<div class="no-data">Aucun établissement enregistré</div>';
+                countElement.textContent = '0';
+                return;
+            }
+            
+            let html = '';
+            establishments.forEach((establishment) => {
+                const isSelected = selectedEstablishments.has(establishment.id);
+                
+                let typeClass = 'type-other';
+                if (establishment.type === 'CEG') typeClass = 'type-ceg';
+                if (establishment.type === 'Lycée') typeClass = 'type-lycee';
+                
+                html += `
+                    <div class="establishment-item ${isSelected ? 'selected' : ''}" data-id="${establishment.id}">
+                        <h3>
+                            ${establishment.name}
+                            <span class="establishment-type ${typeClass}">${establishment.type}</span>
+                        </h3>
+                        <div class="establishment-details">
+                            <div>
+                                <span><strong>Région:</strong></span>
+                                <span>${establishment.region}</span>
+                            </div>
+                            <div>
+                                <span><strong>Ville:</strong></span>
+                                <span>${establishment.ville}</span>
+                            </div>
+                            ${establishment.director ? `
+                            <div>
+                                <span><strong>Directeur:</strong></span>
+                                <span>${establishment.director}</span>
+                            </div>` : ''}
+                            <div>
+                                <span><strong>Coordonnées:</strong></span>
+                                <span>${establishment.latitude?.toFixed(6)}, ${establishment.longitude?.toFixed(6)}</span>
+                            </div>
+                        </div>
+                        <div style="margin-top: 8px;">
+                            <span class="location-tag">${establishment.prefecture || 'N/A'}</span>
+                            ${establishment.capacity ? `<span class="location-tag">${establishment.capacity} élèves</span>` : ''}
+                            <span class="location-tag" style="background-color: #e8f4fc;">${establishment.positionMethod || 'GPS'}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            listContainer.innerHTML = html;
+            countElement.textContent = establishments.length;
+            
+            document.querySelectorAll('.establishment-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    if (selectedEstablishments.has(id)) {
+                        selectedEstablishments.delete(id);
+                    } else {
+                        selectedEstablishments.add(id);
+                    }
+                    this.classList.toggle('selected');
+                    updateSelectAllButtonText();
+                });
+            });
+            
+            updateSelectAllButtonText();
+        }
+        
+        // Mettre à jour le texte du bouton "Tout sélectionner"
+        function updateSelectAllButtonText() {
+            if (establishments.length === 0) {
+                selectAllBtn.innerHTML = '<i class="fas fa-check-square"></i> Tout sélectionner';
+                selectAllBtn.disabled = true;
+                return;
+            }
+            
+            selectAllBtn.disabled = false;
+            const allSelected = selectedEstablishments.size === establishments.length;
+            
+            if (allSelected) {
+                selectAllBtn.innerHTML = '<i class="fas fa-times-circle"></i> Tout désélectionner';
+            } else {
+                selectAllBtn.innerHTML = '<i class="fas fa-check-square"></i> Tout sélectionner';
+            }
+        }
+        
+        // Ajouter un établissement
+        function addEstablishment(establishment) {
+            if (!validateCoordinates(establishment.latitude, establishment.longitude)) {
+                showAlert('Coordonnées GPS invalides. Veuillez vérifier les coordonnées.', 'error');
+                return false;
+            }
+            
+            if (!establishment.name || !establishment.type || !establishment.region || 
+                !establishment.prefecture || !establishment.ville || !establishment.address) {
+                showAlert('Veuillez remplir tous les champs obligatoires', 'error');
+                return false;
+            }
+            
+            establishment.id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+            establishment.date = new Date().toLocaleDateString('fr-FR');
+            establishment.timestamp = new Date().toISOString();
+            
+            // Déterminer la méthode de positionnement
+            if (coordsSource === 'gps' && currentGpsPosition) {
+                establishment.precision = Math.round(currentGpsPosition.coords.accuracy);
+                establishment.gpsAccuracy = currentGpsPosition.coords.accuracy;
+                establishment.gpsTimestamp = new Date(currentGpsPosition.timestamp).toISOString();
+                establishment.positionMethod = 'GPS haute précision';
+            } else if (coordsSource === 'manual') {
+                establishment.precision = 100;
+                establishment.positionMethod = 'Saisie manuelle';
+            } else if (coordsSource === 'city') {
+                establishment.precision = 500; // Précision moindre pour les coordonnées de ville
+                establishment.positionMethod = `Coordonnées de ${establishment.ville}`;
+            } else if (coordsSource === 'sample') {
+                establishment.precision = 50;
+                establishment.positionMethod = 'Coordonnées d\'exemple';
+            } else {
+                establishment.precision = 50;
+                establishment.positionMethod = 'GPS standard';
+            }
+            
+            establishments.push(establishment);
+            localStorage.setItem('togo_establishments', JSON.stringify(establishments));
+            displayEstablishments();
+            
+            if (osmMap) {
+                updateOSMMap();
+            }
+            
+            showAlert('Établissement ajouté avec succès', 'success');
+            return true;
+        }
+        
+        // Supprimer des établissements
+        function deleteSelectedEstablishments() {
+            if (selectedEstablishments.size === 0) {
+                showAlert('Veuillez sélectionner au moins un établissement', 'error');
+                return;
+            }
+            
+            const count = selectedEstablishments.size;
+            
+            if (confirm(`Voulez-vous vraiment supprimer ${count} établissement(s) ?`)) {
+                establishments = establishments.filter(e => !selectedEstablishments.has(e.id));
+                localStorage.setItem('togo_establishments', JSON.stringify(establishments));
+                selectedEstablishments.clear();
+                displayEstablishments();
+                
+                if (osmMap) {
+                    updateOSMMap();
+                }
+                
+                showAlert(`${count} établissement(s) supprimé(s)`, 'success');
+            }
+        }
+        
+        // Sélectionner/désélectionner tous les établissements
+        function toggleSelectAll() {
+            if (establishments.length === 0) return;
+            
+            const allSelected = selectedEstablishments.size === establishments.length;
+            
+            if (allSelected) {
+                selectedEstablishments.clear();
+            } else {
+                establishments.forEach(e => selectedEstablishments.add(e.id));
+            }
+            
+            displayEstablishments();
+        }
+        
+        // Ajouter des données de test
+        function addTestData() {
+            const testData = [
+                {
+                    name: "Lycée Moderne de Lomé",
+                    type: "Lycée",
+                    region: "Maritime",
+                    prefecture: "Golfe",
+                    ville: "Lomé",
+                    address: "Avenue de la République, Tokoin",
+                    director: "M. Kodjo Agbéyomé",
+                    capacity: 2500,
+                    latitude: 6.146325,
+                    longitude: 1.206812,
+                    precision: 5,
+                    positionMethod: "Données de test"
+                },
+                {
+                    name: "CEG Sokodé",
+                    type: "CEG",
+                    region: "Centrale",
+                    prefecture: "Tchaoudjo",
+                    ville: "Sokodé",
+                    address: "Quartier Administratif",
+                    director: "Mme. Afi Koffi",
+                    capacity: 1800,
+                    latitude: 8.986215,
+                    longitude: 1.131524,
+                    precision: 8,
+                    positionMethod: "Données de test"
+                },
+                {
+                    name: "Université de Kara",
+                    type: "Université",
+                    region: "Kara",
+                    prefecture: "Kozah",
+                    ville: "Kara",
+                    address: "Campus Nord, Quartier Université",
+                    director: "Pr. Tchamdja K.",
+                    capacity: 5000,
+                    latitude: 9.549824,
+                    longitude: 1.189312,
+                    precision: 12,
+                    positionMethod: "Données de test"
+                }
+            ];
+            
+            testData.forEach(est => {
+                est.id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+                est.date = new Date().toLocaleDateString('fr-FR');
+                est.timestamp = new Date().toISOString();
+            });
+            
+            establishments.push(...testData);
+            localStorage.setItem('togo_establishments', JSON.stringify(establishments));
+            displayEstablishments();
+            
+            if (osmMap) {
+                updateOSMMap();
+            }
+            
+            showAlert('3 établissements de test ajoutés avec coordonnées précises', 'success');
+        }
+        
+        // Exporter les données en JSON
+        function exportToJSON() {
+            if (establishments.length === 0) {
+                showAlert('Aucun établissement à exporter', 'error');
+                return;
+            }
+            
+            const dataStr = JSON.stringify(establishments, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            const exportFileDefaultName = 'etablissements_togo.json';
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.style.display = 'none';
+            document.body.appendChild(linkElement);
+            linkElement.click();
+            document.body.removeChild(linkElement);
+            showAlert('Données exportées en JSON', 'success');
+        }
+        
+        // Importer un fichier JSON
+        function importJSONFile(file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    if (!Array.isArray(importedData)) {
+                        showAlert('Le fichier JSON doit contenir un tableau d\'établissements', 'error');
+                        return;
+                    }
+                    
+                    const validEstablishments = [];
+                    let invalidCount = 0;
+                    
+                    importedData.forEach((item, index) => {
+                        if (!item.name || !item.type || !item.region || !item.ville || !item.address) {
+                            invalidCount++;
+                            return;
+                        }
+                        
+                        if (!validateCoordinates(item.latitude, item.longitude)) {
+                            invalidCount++;
+                            return;
+                        }
+                        
+                        item.id = Date.now().toString() + index + Math.random().toString(36).substr(2, 9);
+                        item.date = new Date().toLocaleDateString('fr-FR');
+                        item.timestamp = new Date().toISOString();
+                        validEstablishments.push(item);
+                    });
+                    
+                    if (validEstablishments.length === 0) {
+                        showAlert('Aucun établissement valide trouvé dans le fichier', 'error');
+                        return;
+                    }
+                    
+                    establishments.push(...validEstablishments);
+                    localStorage.setItem('togo_establishments', JSON.stringify(establishments));
+                    
+                    displayEstablishments();
+                    
+                    if (osmMap) {
+                        updateOSMMap();
+                    }
+                    
+                    let message = `${validEstablishments.length} établissement(s) importé(s) avec succès`;
+                    if (invalidCount > 0) {
+                        message += ` (${invalidCount} établissement(s) ignoré(s) car invalides)`;
+                    }
+                    
+                    showAlert(message, 'success');
+                    
+                } catch (error) {
+                    showAlert('Erreur lors de l\'import du fichier JSON: ' + error.message, 'error');
+                }
+            };
+            
+            reader.onerror = function() {
+                showAlert('Erreur lors de la lecture du fichier', 'error');
+            };
+            
+            reader.readAsText(file);
+        }
+        
+        // ============================================
+        // FONCTIONS D'EXPORT
+        // ============================================
+        
+        // Obtenir les établissements filtrés
+        function getFilteredEstablishments() {
+            return establishments.filter(est => {
+                if (currentFilters.region && est.region !== currentFilters.region) return false;
+                if (currentFilters.type && est.type !== currentFilters.type) return false;
+                if (currentFilters.ville && !est.ville.toLowerCase().includes(currentFilters.ville.toLowerCase())) return false;
+                return true;
+            });
+        }
+        
+        // Exporter en KML
+        function exportToKML() {
+            const filteredEstablishments = getFilteredEstablishments();
+            
+            if (filteredEstablishments.length === 0) {
+                showAlert('Aucun établissement à exporter avec les filtres actuels', 'error');
+                return;
+            }
+            
+            let kml = `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document>
+    <name>Établissements Scolaires Togo</name>
+    <description>Export des établissements scolaires du Togo</description>`;
+            
+            filteredEstablishments.forEach(est => {
+                kml += `
+    <Placemark>
+        <name><![CDATA[${est.name}]]></name>
+        <description><![CDATA[
+            Type: ${est.type}<br/>
+            Région: ${est.region}<br/>
+            Préfecture: ${est.prefecture || 'N/A'}<br/>
+            Ville: ${est.ville}<br/>
+            Adresse: ${est.address}<br/>
+            ${est.director ? `Directeur: ${est.director}<br/>` : ''}
+            ${est.capacity ? `Capacité: ${est.capacity} élèves<br/>` : ''}
+            Méthode: ${est.positionMethod || 'N/A'}
+        ]]></description>
+        <Point>
+            <coordinates>${est.longitude},${est.latitude},0</coordinates>
+        </Point>
+    </Placemark>`;
+            });
+            
+            kml += `
+</Document>
+</kml>`;
+            
+            const filename = exportFilenameInput.value || 'etablissements_togo';
+            downloadFile(kml, `${filename}.kml`, 'application/vnd.google-earth.kml+xml');
+            showAlert(`Export KML réussi: ${filteredEstablishments.length} établissement(s)`, 'success');
+        }
+        
+        // Exporter en GPX
+        function exportToGPX() {
+            const filteredEstablishments = getFilteredEstablishments();
+            
+            if (filteredEstablishments.length === 0) {
+                showAlert('Aucun établissement à exporter avec les filtres actuels', 'error');
+                return;
+            }
+            
+            let gpx = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Établissements Scolaires Togo" xmlns="http://www.topografix.com/GPX/1/1">
+    <metadata>
+        <name>Établissements Scolaires Togo</name>
+        <desc>Export des établissements scolaires du Togo</desc>
+        <time>${new Date().toISOString()}</time>
+    </metadata>`;
+            
+            filteredEstablishments.forEach(est => {
+                gpx += `
+    <wpt lat="${est.latitude}" lon="${est.longitude}">
+        <name><![CDATA[${est.name}]]></name>
+        <desc><![CDATA[Type: ${est.type}, Ville: ${est.ville}]]></desc>
+        <type>School</type>
+        <extensions>
+            <region>${est.region}</region>
+            <ville>${est.ville}</ville>
+            <type>${est.type}</type>
+        </extensions>
+    </wpt>`;
+            });
+            
+            gpx += `
+</gpx>`;
+            
+            const filename = exportFilenameInput.value || 'etablissements_togo';
+            downloadFile(gpx, `${filename}.gpx`, 'application/gpx+xml');
+            showAlert(`Export GPX réussi: ${filteredEstablishments.length} établissement(s)`, 'success');
+        }
+        
+        // Exporter en GeoJSON
+        function exportToGeoJSON() {
+            const filteredEstablishments = getFilteredEstablishments();
+            
+            if (filteredEstablishments.length === 0) {
+                showAlert('Aucun établissement à exporter avec les filtres actuels', 'error');
+                return;
+            }
+            
+            const geoJSON = {
+                type: "FeatureCollection",
+                features: filteredEstablishments.map(est => ({
+                    type: "Feature",
+                    geometry: {
+                        type: "Point",
+                        coordinates: [est.longitude, est.latitude]
+                    },
+                    properties: {
+                        name: est.name,
+                        type: est.type,
+                        region: est.region,
+                        prefecture: est.prefecture || null,
+                        ville: est.ville,
+                        address: est.address,
+                        director: est.director || null,
+                        capacity: est.capacity || null,
+                        precision: est.precision || null,
+                        positionMethod: est.positionMethod || null,
+                        date: est.date,
+                        timestamp: est.timestamp
+                    }
+                }))
+            };
+            
+            const filename = exportFilenameInput.value || 'etablissements_togo';
+            downloadFile(JSON.stringify(geoJSON, null, 2), `${filename}.geojson`, 'application/geo+json');
+            showAlert(`Export GeoJSON réussi: ${filteredEstablishments.length} établissement(s)`, 'success');
+        }
+        
+        // Exporter en CSV
+        function exportToCSV() {
+            const filteredEstablishments = getFilteredEstablishments();
+            
+            if (filteredEstablishments.length === 0) {
+                showAlert('Aucun établissement à exporter avec les filtres actuels', 'error');
+                return;
+            }
+            
+            // En-têtes CSV
+            let csv = "Nom;Type;Région;Préfecture;Ville;Adresse;Directeur;Capacité;Latitude;Longitude;Méthode;Date\n";
+            
+            filteredEstablishments.forEach(est => {
+                csv += `"${est.name}";"${est.type}";"${est.region}";"${est.prefecture || ''}";"${est.ville}";"${est.address || ''}";"${est.director || ''}";${est.capacity || ''};${est.latitude};${est.longitude};"${est.positionMethod || ''}";"${est.date}"\n`;
+            });
+            
+            const filename = exportFilenameInput.value || 'etablissements_togo';
+            downloadFile(csv, `${filename}.csv`, 'text/csv;charset=utf-8;');
+            showAlert(`Export CSV réussi: ${filteredEstablishments.length} établissement(s)`, 'success');
+        }
+        
+        // Télécharger un fichier
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+        
+        // Exporter tous les formats
+        function exportAllFormats() {
+            if (getFilteredEstablishments().length === 0) {
+                showAlert('Aucun établissement à exporter avec les filtres actuels', 'error');
+                return;
+            }
+            
+            exportToKML();
+            setTimeout(() => exportToGPX(), 500);
+            setTimeout(() => exportToGeoJSON(), 1000);
+            setTimeout(() => exportToCSV(), 1500);
+            showAlert('Export en cours pour les 4 formats (KML, GPX, GeoJSON, CSV)...', 'info', 4000);
+        }
+        
+        // ============================================
+        // ÉVÉNEMENTS DU FORMULAIRE
+        // ============================================
+        
+        // Gestion de la région/préfecture
+        regionInput.addEventListener('change', function() {
+            const region = this.value;
+            prefectureInput.innerHTML = '<option value="">Sélectionnez une préfecture</option>';
+            
+            if (region && prefecturesByRegion[region]) {
+                prefecturesByRegion[region].forEach(prefecture => {
+                    const option = document.createElement('option');
+                    option.value = prefecture;
+                    option.textContent = prefecture;
+                    prefectureInput.appendChild(option);
+                });
+            }
+            
+            validateForm();
+        });
+        
+        // Vérification de la ville pour génération automatique des coordonnées
+        villeInput.addEventListener('input', function() {
+            // Attendre un peu pour éviter de vérifier à chaque frappe
+            setTimeout(() => {
+                checkCityForCoordinates();
+            }, 300);
+        });
+        
+        // Vérification quand on quitte le champ ville
+        villeInput.addEventListener('blur', checkCityForCoordinates);
+        
+        // Ajuster manuellement les coordonnées de la ville
+        adjustCityCoordsBtn.addEventListener('click', adjustCityCoordinates);
+        
+        // Actualiser les coordonnées de la ville
+        refreshCityCoordsBtn.addEventListener('click', refreshCityCoordinates);
+        
+        // Activation de la saisie manuelle
+        enableManualCoordsBtn.addEventListener('click', function() {
+            if (isManualCoords) {
+                disableManualCoordinates();
+            } else {
+                enableManualCoordinates();
+            }
+        });
+        
+        // Utilisation des coordonnées d'exemple
+        useSampleCoordsBtn.addEventListener('click', useSampleCoordinates);
+        
+        // Afficher sur la carte (depuis le formulaire)
+        showOnMapBtn.addEventListener('click', showCoordinatesOnMap);
+        
+        // Afficher la liste sur la carte
+        viewOnMapBtn.addEventListener('click', showListOnMap);
+        
+        // Activation du GPS
+        activateGpsBtn.addEventListener('click', toggleGps);
+        
+        // Capture de la position GPS
+        captureGpsBtn.addEventListener('click', captureGpsPosition);
+        
+        // Rafraîchissement de la position GPS
+        refreshGpsBtn.addEventListener('click', refreshGpsPosition);
+        
+        // Validation générale du formulaire
+        form.addEventListener('input', validateForm);
+        
+        // Prévisualisation sur OSM
+        previewOnMapsBtn.addEventListener('click', openInOSM);
+        
+        // Soumission du formulaire
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!validateForm()) {
+                showAlert('Veuillez remplir tous les champs obligatoires et vérifier les coordonnées', 'error');
+                return;
+            }
+            
+            let lat, lng;
+            if (isManualCoords) {
+                lat = parseFloat(latitudeManualInput.value);
+                lng = parseFloat(longitudeManualInput.value);
+            } else {
+                lat = parseFloat(latitudeAutoInput.value);
+                lng = parseFloat(longitudeAutoInput.value);
+            }
+            
+            const establishment = {
+                name: nameInput.value.trim(),
+                type: typeInput.value,
+                region: regionInput.value,
+                prefecture: prefectureInput.value,
+                ville: villeInput.value.trim(),
+                address: addressInput.value.trim(),
+                director: directorInput.value.trim() || null,
+                capacity: capacityInput.value ? parseInt(capacityInput.value) : null,
+                latitude: lat,
+                longitude: lng,
+                isManualCoords: isManualCoords
+            };
+            
+            if (addEstablishment(establishment)) {
+                // Réinitialiser le formulaire
+                form.reset();
+                latitudeManualInput.value = '';
+                longitudeManualInput.value = '';
+                latitudeAutoInput.value = '';
+                longitudeAutoInput.value = '';
+                
+                // Réinitialiser les états
+                disableManualCoordinates();
+                gpsCoordinatesDisplay.style.display = 'none';
+                autoGenerateSection.style.display = 'none';
+                currentCityCoords = null;
+                coordsSource = 'none';
+                coordsSourceBadge.style.display = 'none';
+                coordsSourceInfo.innerHTML = `<i class="fas fa-info-circle"></i> Utilisez le GPS, saisissez une ville togolaise, ou utilisez la saisie manuelle`;
+                submitBtn.disabled = true;
+                previewOnMapsBtn.disabled = true;
+                showOnMapBtn.disabled = true;
+                mapPreviewSection.style.display = 'none';
+                
+                // Désactiver le GPS si actif
+                if (isGpsActive) {
+                    deactivateGps();
+                }
+                
+                // Passer à l'onglet liste
+                switchTab('list');
+            }
+        });
+        
+        // ============================================
+        // ÉVÉNEMENTS DE LA LISTE
+        // ============================================
+        
+        // Sélectionner/désélectionner tout
+        selectAllBtn.addEventListener('click', toggleSelectAll);
+        
+        // Supprimer la sélection
+        deleteSelectedBtn.addEventListener('click', deleteSelectedEstablishments);
+        
+        // Ajouter des données de test
+        addMultipleBtn.addEventListener('click', addTestData);
+        
+        // Exporter les données en JSON
+        exportDataBtn.addEventListener('click', exportToJSON);
+        
+        // Importer un fichier JSON
+        importJsonInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            if (!file.name.endsWith('.json')) {
+                showAlert('Veuillez sélectionner un fichier JSON', 'error');
+                return;
+            }
+            
+            importFileName.textContent = `Fichier sélectionné: ${file.name}`;
+            importFileName.style.display = 'block';
+            
+            importJSONFile(file);
+            
+            e.target.value = '';
+        });
+        
+        // ============================================
+        // ÉVÉNEMENTS DE LA CARTE
+        // ============================================
+        
+        // Localisation sur la carte
+        getMyLocationBtn.addEventListener('click', getUserLocationOnMap);
+        
+        // Effacer la carte
+        clearMapBtn.addEventListener('click', clearMapMarkers);
+        
+        // Actualiser la carte
+        refreshMapBtn.addEventListener('click', refreshOSMMap);
+        
+        // Exporter depuis la carte
+        exportFromMapBtn.addEventListener('click', exportFromMap);
+        
+        // ============================================
+        // ÉVÉNEMENTS D'EXPORT
+        // ============================================
+        
+        // Appliquer les filtres
+        applyFiltersBtn.addEventListener('click', function() {
+            currentFilters.region = filterRegion.value;
+            currentFilters.type = filterType.value;
+            currentFilters.ville = filterVille.value.trim();
+            
+            const filteredCount = getFilteredEstablishments().length;
+            exportResult.innerHTML = `<p>Filtres appliqués: ${filteredCount} établissement(s) trouvé(s)</p>`;
+            exportResult.style.display = 'block';
+            
+            showAlert(`Filtres appliqués: ${filteredCount} établissement(s)`, 'success');
+        });
+        
+        // Réinitialiser les filtres
+        resetFiltersBtn.addEventListener('click', function() {
+            filterRegion.value = '';
+            filterType.value = '';
+            filterVille.value = '';
+            currentFilters.region = '';
+            currentFilters.type = '';
+            currentFilters.ville = '';
+            exportResult.style.display = 'none';
+            showAlert('Filtres réinitialisés', 'info');
+        });
+        
+        // Exporter en KML
+        exportKmlBtn.addEventListener('click', exportToKML);
+        
+        // Exporter en GPX
+        exportGpxBtn.addEventListener('click', exportToGPX);
+        
+        // Exporter en GeoJSON
+        exportGeojsonBtn.addEventListener('click', exportToGeoJSON);
+        
+        // Exporter en CSV
+        exportCsvBtn.addEventListener('click', exportToCSV);
+        
+        // Exporter tous les formats
+        exportAllFormatsBtn.addEventListener('click', exportAllFormats);
+        
+        // ============================================
+        // ÉVÉNEMENTS DES BOUTONS FLOTTANTS
+        // ============================================
+        
+        // Bouton flottant localisation
+        floatingLocationBtn.addEventListener('click', function() {
+            switchTab('map');
+            setTimeout(() => {
+                getUserLocationOnMap();
+            }, 300);
+        });
+        
+        // Bouton flottant export
+        floatingExportBtn.addEventListener('click', function() {
+            switchTab('export');
+        });
+        
+        // Bouton flottant liste
+        floatingListBtn.addEventListener('click', function() {
+            switchTab('list');
+        });
+        
+        // Bouton flottant carte
+        floatingMapBtn.addEventListener('click', function() {
+            switchTab('map');
+        });
+        
+        // ============================================
+        // INITIALISATION
+        // ============================================
+        
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Afficher les données existantes
+            if (establishments.length > 0) {
+                displayEstablishments();
+            }
+            
+            // Afficher un message de bienvenue
+            setTimeout(() => {
+                if (establishments.length === 0) {
+                    showAlert('Saisissez une ville togolaise pour générer automatiquement ses coordonnées GPS', 'info', 6000);
+                }
+            }, 1000);
+            
+            // Initialiser la navigation par onglets
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    switchTab(this.dataset.tab);
+                });
+            });
+            
+            // Vérifier si la géolocalisation est disponible
+            if (!navigator.geolocation) {
+                showAlert('Votre navigateur ne supporte pas la géolocalisation. Utilisez la saisie manuelle ou sélectionnez une ville.', 'warning', 8000);
+            }
+        });
+        
+        // Nettoyage à la fermeture
+        window.addEventListener('beforeunload', function() {
+            if (gpsWatchId) {
+                navigator.geolocation.clearWatch(gpsWatchId);
+            }
+        });
+        
+        // Redimensionnement de la fenêtre
+        window.addEventListener('resize', function() {
+            if (osmMap) {
+                setTimeout(() => {
+                    osmMap.invalidateSize();
+                }, 100);
+            }
+            if (osmPreviewMap) {
+                setTimeout(() => {
+                    osmPreviewMap.invalidateSize();
+                }, 100);
+            }
+        });
+    </script>
+</body>
+</html>
