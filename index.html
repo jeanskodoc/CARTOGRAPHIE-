@@ -295,6 +295,19 @@
             font-size: 1.1rem;
         }
         
+        .btn-inspection {
+            background-color: #ff9800;
+            color: white;
+            margin-top: 20px;
+            width: 100%;
+        }
+        
+        .btn-inspection:hover {
+            background-color: #e68900;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 152, 0, 0.3);
+        }
+        
         /* Admin */
         .admin-container {
             max-width: 400px;
@@ -424,6 +437,60 @@
             background-color: #e6b800;
             transform: translateY(-3px);
             box-shadow: 0 5px 15px rgba(255, 206, 0, 0.3);
+        }
+        
+        /* Inspection Section */
+        .inspection-container {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .inspection-info {
+            margin-bottom: 40px;
+        }
+        
+        .inspection-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #ff9800, #ff5722);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        
+        .inspection-icon i {
+            font-size: 48px;
+            color: white;
+        }
+        
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .feature-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 4px solid #ff9800;
+        }
+        
+        .feature-card h4 {
+            color: #006b3f;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .feature-card p {
+            color: #666;
+            font-size: 0.95rem;
         }
         
         /* Alertes */
@@ -584,6 +651,10 @@
             .tab-content {
                 padding: 20px;
             }
+            
+            .feature-list {
+                grid-template-columns: 1fr;
+            }
         }
         
         @media (max-width: 480px) {
@@ -624,6 +695,7 @@
                     <li><a href="#" class="nav-link active" data-tab="commande"><i class="fas fa-shopping-cart"></i> Commande de Carte</a></li>
                     <li><a href="#" class="nav-link" data-tab="admin"><i class="fas fa-user-shield"></i> Admin</a></li>
                     <li><a href="#" class="nav-link" data-tab="carte"><i class="fas fa-map"></i> Visualiser Carte</a></li>
+                    <li><a href="#" class="nav-link" data-tab="inspection"><i class="fas fa-search-location"></i> Inspection</a></li>
                 </ul>
             </nav>
         </div>
@@ -645,6 +717,10 @@
                 <button class="tab-btn" data-tab="carte">
                     <i class="fas fa-map"></i>
                     <span>Visualiser Carte</span>
+                </button>
+                <button class="tab-btn" data-tab="inspection">
+                    <i class="fas fa-search-location"></i>
+                    <span>Inspection</span>
                 </button>
             </div>
             
@@ -813,6 +889,64 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Nouvel onglet 4: Inspection -->
+            <div class="tab-content" id="inspection-content">
+                <div class="inspection-container">
+                    <div class="inspection-info">
+                        <div class="inspection-icon">
+                            <i class="fas fa-search-location"></i>
+                        </div>
+                        
+                        <h2 class="map-title">Carte des Inspections Scolaires</h2>
+                        <p class="map-description">
+                            Accédez à la carte interactive complète de toutes les inspections scolaires du Togo. 
+                            Visualisez la répartition géographique, les circuits d'inspection et les établissements 
+                            sous la responsabilité de chaque inspection.
+                        </p>
+                        
+                        <div class="feature-list">
+                            <div class="feature-card">
+                                <h4><i class="fas fa-map-marked-alt"></i> Vue d'ensemble</h4>
+                                <p>Visualisez toutes les inspections scolaires sur une seule carte interactive avec leurs zones de compétence.</p>
+                            </div>
+                            
+                            <div class="feature-card">
+                                <h4><i class="fas fa-school"></i> Établissements rattachés</h4>
+                                <p>Consultez les établissements scolaires sous la responsabilité de chaque inspection.</p>
+                            </div>
+                            
+                            <div class="feature-card">
+                                <h4><i class="fas fa-route"></i> Circuits d'inspection</h4>
+                                <p>Visualisez les circuits et périmètres pédagogiques pour optimiser les tournées d'inspection.</p>
+                            </div>
+                            
+                            <div class="feature-card">
+                                <h4><i class="fas fa-download"></i> Données exportables</h4>
+                                <p>Téléchargez les données géographiques pour une utilisation dans vos outils SIG préférés.</p>
+                            </div>
+                        </div>
+                        
+                        <button id="btn-open-inspection" class="btn btn-inspection btn-large">
+                            <i class="fas fa-external-link-alt"></i> Ouvrir la Carte des Inspections
+                        </button>
+                        
+                        <div style="margin-top: 30px; padding: 20px; background: #fff8e1; border-radius: 10px; border-left: 4px solid #ff9800;">
+                            <h4 style="color: #ff9800; margin-bottom: 10px;"><i class="fas fa-lightbulb"></i> Information importante</h4>
+                            <p style="color: #666;">
+                                La carte des inspections permet aux inspecteurs, directeurs régionaux et planificateurs 
+                                d'avoir une vue complète du réseau scolaire. Elle est particulièrement utile pour :
+                            </p>
+                            <ul style="text-align: left; color: #666; margin-top: 10px; padding-left: 20px;">
+                                <li>Planification des tournées d'inspection</li>
+                                <li>Optimisation des circuits pédagogiques</li>
+                                <li>Analyse de la couverture scolaire par zone</li>
+                                <li>Prise de décision stratégique</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -884,6 +1018,7 @@
         const closeConfirmationModal = document.getElementById('close-confirmation-modal');
         const confirmWhatsappBtn = document.getElementById('confirm-whatsapp');
         const orderSummary = document.getElementById('order-summary');
+        const btnOpenInspection = document.getElementById('btn-open-inspection');
         
         // ============================================
         // FONCTIONS
@@ -1126,6 +1261,16 @@
             });
         }
         
+        // Gestion du bouton d'inspection
+        function setupInspectionButton() {
+            if (!btnOpenInspection) return;
+            
+            btnOpenInspection.addEventListener('click', function() {
+                // Rediriger vers la page inspection.html
+                window.open('inspection.html', '_blank');
+            });
+        }
+        
         // Afficher une alerte
         function showAlert(alertElement, message, type) {
             if (!alertElement) return;
@@ -1151,6 +1296,7 @@
             setupOrderForm();
             setupLoginForm();
             setupConfirmationModal();
+            setupInspectionButton();
             
             // Afficher un message de bienvenue
             console.log("Système de cartographie des établissements scolaires du Togo");
