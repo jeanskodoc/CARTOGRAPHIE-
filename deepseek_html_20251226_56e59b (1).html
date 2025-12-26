@@ -1,0 +1,2444 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualisation des établissements - Togo</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+            flex-direction: column;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #0066cc 0%, #004d99 100%);
+            color: white;
+            padding: 1.2rem 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo i {
+            font-size: 1.8rem;
+        }
+        
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .logo span {
+            color: #ffd700;
+        }
+        
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .sidebar {
+            width: 380px;
+            background-color: white;
+            padding: 1.5rem;
+            box-shadow: 3px 0 10px rgba(0, 0, 0, 0.08);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .map-container {
+            flex: 1;
+            position: relative;
+        }
+        
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid #eaeaea;
+        }
+        
+        .card h2 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: #0066cc;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .card h2 i {
+            color: #0066cc;
+        }
+        
+        .upload-area {
+            border: 2px dashed #0066cc;
+            border-radius: 8px;
+            padding: 2rem 1rem;
+            text-align: center;
+            background-color: #f8fbff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+        
+        .upload-area:hover {
+            background-color: #e6f2ff;
+            border-color: #004d99;
+        }
+        
+        .upload-area i {
+            font-size: 2.5rem;
+            color: #0066cc;
+            margin-bottom: 0.8rem;
+        }
+        
+        .upload-area p {
+            color: #555;
+            margin-bottom: 0.5rem;
+        }
+        
+        .upload-area .file-types {
+            font-size: 0.85rem;
+            color: #777;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background-color: #0066cc;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #004d99;
+        }
+        
+        .btn-secondary {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .btn-success {
+            background-color: #2ecc71;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+        
+        .btn-warning {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background-color: #d68910;
+        }
+        
+        .btn-info {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background-color: #2980b9;
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+        
+        .file-list {
+            margin-top: 1rem;
+        }
+        
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            border-left: 4px solid #0066cc;
+        }
+        
+        .file-name {
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+        }
+        
+        .file-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .file-actions i {
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .file-actions i:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        .legend {
+            margin-top: 1rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0066cc;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: #777;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 1rem;
+            background-color: #f0f0f0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .map-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .map-controls .btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-header h3 {
+            color: #0066cc;
+            margin: 0;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #777;
+        }
+        
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .establishment-info {
+            background-color: #f9f9f9;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+            border-left: 4px solid #0066cc;
+        }
+        
+        .info-row {
+            display: flex;
+            margin-bottom: 0.5rem;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            min-width: 120px;
+            color: #555;
+        }
+        
+        .info-value {
+            flex: 1;
+            color: #333;
+        }
+        
+        .distance-info {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #e8f4fc;
+            border-radius: 6px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .distance-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #d1e7f5;
+        }
+        
+        .distance-item:last-child {
+            border-bottom: none;
+        }
+        
+        .distance-name {
+            font-weight: 500;
+        }
+        
+        .distance-value {
+            font-weight: 700;
+            color: #0066cc;
+        }
+        
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 1rem;
+        }
+        
+        .tab {
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            border-bottom-color: #0066cc;
+            color: #0066cc;
+            font-weight: 600;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .distance-controls {
+            margin-bottom: 1rem;
+        }
+        
+        .distance-results {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 1rem;
+        }
+        
+        .distance-result-item {
+            padding: 0.8rem;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            border-left: 4px solid #3498db;
+        }
+        
+        .distance-line {
+            position: absolute;
+            z-index: 500;
+        }
+        
+        .preview-panel {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            border: 1px solid #eaeaea;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #0066cc;
+        }
+        
+        .preview-title {
+            font-weight: 600;
+            color: #0066cc;
+        }
+        
+        .preview-content {
+            font-size: 0.9rem;
+        }
+        
+        .preview-item {
+            margin-bottom: 0.8rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .preview-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .preview-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        
+        .preview-table th {
+            background-color: #f1f5f9;
+            padding: 0.5rem;
+            text-align: left;
+            font-weight: 600;
+            color: #0066cc;
+            border: 1px solid #ddd;
+        }
+        
+        .preview-table td {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+        }
+        
+        .preview-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .file-status {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-loaded {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                max-height: 40vh;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 1rem;
+            }
+            
+            .tab-container {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <h1>Cartographie des <span>Établissements</span> - Togo</h1>
+                </div>
+                <div class="header-info">
+                    <p>Visualisez et gérez les données géographiques des établissements</p>
+                </div>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="tab-container">
+                    <div class="tab active" data-tab="files">Fichiers</div>
+                    <div class="tab" data-tab="preview">Prévisualisation</div>
+                    <div class="tab" data-tab="distance">Distances</div>
+                    <div class="tab" data-tab="details">Détails</div>
+                </div>
+                
+                <!-- Onglet Fichiers -->
+                <div class="tab-content active" id="files-tab">
+                    <div class="card">
+                        <h2><i class="fas fa-upload"></i> Chargement de fichiers</h2>
+                        <div class="upload-area" id="dropArea">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Glissez-déposez vos fichiers ici</p>
+                            <p class="file-types">Formats acceptés: KML, GPX</p>
+                            <p>ou</p>
+                            <button class="btn btn-primary" id="browseBtn">
+                                <i class="fas fa-folder-open"></i> Parcourir les fichiers
+                            </button>
+                        </div>
+                        <input type="file" id="fileInput" accept=".kml,.gpx" multiple>
+                        
+                        <div class="controls">
+                            <button class="btn btn-success" id="addMarkerBtn">
+                                <i class="fas fa-plus-circle"></i> Ajouter un établissement
+                            </button>
+                            <button class="btn btn-primary" id="centerMapBtn">
+                                <i class="fas fa-crosshairs"></i> Recentrer sur le Togo
+                            </button>
+                            <button class="btn btn-warning" id="resetMapBtn">
+                                <i class="fas fa-redo"></i> Réinitialiser la carte
+                            </button>
+                            <button class="btn btn-danger" id="clearAllBtn">
+                                <i class="fas fa-trash-alt"></i> Effacer tous les marqueurs
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h2><i class="fas fa-layer-group"></i> Fichiers chargés</h2>
+                        <div id="fileList" class="file-list">
+                            <p id="noFilesMessage" style="text-align: center; color: #777; font-style: italic;">
+                                Aucun fichier chargé
+                            </p>
+                        </div>
+                        
+                        <div class="stats">
+                            <div class="stat-item">
+                                <div class="stat-value" id="fileCount">0</div>
+                                <div class="stat-label">Fichiers</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="markerCount">0</div>
+                                <div class="stat-label">Établissements</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="typeCount">0</div>
+                                <div class="stat-label">Types</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Onglet Prévisualisation -->
+                <div class="tab-content" id="preview-tab">
+                    <div class="card">
+                        <h2><i class="fas fa-eye"></i> Prévisualisation des fichiers</h2>
+                        <div id="previewContainer" class="preview-panel">
+                            <p style="text-align: center; color: #777; font-style: italic;">
+                                Sélectionnez un fichier à prévisualiser
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h2><i class="fas fa-cogs"></i> Actions de prévisualisation</h2>
+                        <div class="controls">
+                            <button class="btn btn-primary" id="loadSelectedFileBtn">
+                                <i class="fas fa-map-marker-alt"></i> Localiser sur la carte
+                            </button>
+                            <button class="btn btn-secondary" id="clearPreviewBtn">
+                                <i class="fas fa-times"></i> Effacer la prévisualisation
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Onglet Distances -->
+                <div class="tab-content" id="distance-tab">
+                    <div class="card">
+                        <h2><i class="fas fa-ruler"></i> Calcul des distances</h2>
+                        
+                        <div class="distance-controls">
+                            <button class="btn btn-info" id="calcDistanceToMeBtn" style="width: 100%; margin-bottom: 0.8rem;">
+                                <i class="fas fa-street-view"></i> Distance à ma position
+                            </button>
+                            
+                            <button class="btn btn-info" id="calcDistancesBetweenBtn" style="width: 100%; margin-bottom: 0.8rem;">
+                                <i class="fas fa-exchange-alt"></i> Distances entre établissements
+                            </button>
+                            
+                            <button class="btn btn-secondary" id="clearDistancesBtn" style="width: 100%;">
+                                <i class="fas fa-times-circle"></i> Effacer les lignes de distance
+                            </button>
+                        </div>
+                        
+                        <div class="distance-results" id="distanceResults">
+                            <p style="text-align: center; color: #777; font-style: italic;">
+                                Cliquez sur un bouton pour calculer les distances
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h2><i class="fas fa-map-marker-alt"></i> Ma position</h2>
+                        <div id="userPositionInfo" style="text-align: center; padding: 1rem;">
+                            <p style="color: #777; margin-bottom: 1rem;">
+                                <i class="fas fa-info-circle"></i> Votre position n'est pas encore détectée
+                            </p>
+                            <button class="btn btn-primary" id="detectLocationBtn">
+                                <i class="fas fa-location-arrow"></i> Détecter ma position
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Onglet Détails -->
+                <div class="tab-content" id="details-tab">
+                    <div class="card" id="detailsCard">
+                        <h2><i class="fas fa-info-circle"></i> Détails de l'établissement</h2>
+                        <div id="establishmentDetails" class="establishment-info">
+                            <p style="text-align: center; color: #777; font-style: italic;">
+                                Cliquez sur un établissement pour voir ses détails
+                            </p>
+                        </div>
+                        
+                        <div id="distanceToUserInfo" class="distance-info" style="display: none;">
+                            <h3 style="font-size: 1rem; margin-bottom: 0.5rem; color: #3498db;">
+                                <i class="fas fa-ruler"></i> Distance depuis votre position
+                            </h3>
+                            <div id="distanceToUserValue"></div>
+                        </div>
+                        
+                        <div class="controls" style="margin-top: 1rem;">
+                            <button class="btn btn-warning" id="editMarkerBtn">
+                                <i class="fas fa-edit"></i> Modifier
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2><i class="fas fa-info-circle"></i> Légende</h2>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #0066cc;"></div>
+                            <span>Établissements publics</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #e74c3c;"></div>
+                            <span>Établissements privés</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #2ecc71;"></div>
+                            <span>Établissements de santé</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #f39c12;"></div>
+                            <span>Établissements éducatifs</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #9b59b6;"></div>
+                            <span>Établissements ajoutés</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #3498db; border-radius: 0;"></div>
+                            <span>Lignes de distance</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #ff6b6b;"></div>
+                            <span>Fichiers en attente</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="map-container">
+                <div id="map"></div>
+                
+                <div class="map-controls">
+                    <button class="btn btn-primary" id="zoomInBtn" title="Zoomer">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button class="btn btn-primary" id="zoomOutBtn" title="Dézoomer">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <button class="btn btn-secondary" id="locateBtn" title="Me localiser">
+                        <i class="fas fa-location-arrow"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal pour ajouter/modifier un établissement -->
+        <div class="modal" id="addEditModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modalTitle">Ajouter un établissement</h3>
+                    <button class="close-modal" id="closeModal">&times;</button>
+                </div>
+                <form id="establishmentForm">
+                    <div class="form-group">
+                        <label for="estName">Nom de l'établissement</label>
+                        <input type="text" id="estName" name="estName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="estType">Type d'établissement</label>
+                        <select id="estType" name="estType" required>
+                            <option value="">Sélectionner un type</option>
+                            <option value="CEG">CEG (Collège d'Enseignement Général)</option>
+                            <option value="Lycée">Lycée</option>
+                            <option value="Université">Université</option>
+                            <option value="Hôpital">Hôpital</option>
+                            <option value="Centre de Santé">Centre de Santé</option>
+                            <option value="Mairie">Mairie</option>
+                            <option value="Administration">Administration</option>
+                            <option value="Autre">Autre</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="estRegion">Région</label>
+                        <select id="estRegion" name="estRegion" required>
+                            <option value="">Sélectionner une région</option>
+                            <option value="Maritime">Maritime</option>
+                            <option value="Plateaux">Plateaux</option>
+                            <option value="Centrale">Centrale</option>
+                            <option value="Kara">Kara</option>
+                            <option value="Savanes">Savanes</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="estPrefecture">Préfecture</label>
+                        <input type="text" id="estPrefecture" name="estPrefecture" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="estVille">Ville</label>
+                        <input type="text" id="estVille" name="estVille" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="estAdresse">Adresse</label>
+                        <textarea id="estAdresse" name="estAdresse"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="estDirecteur">Directeur/Responsable</label>
+                        <input type="text" id="estDirecteur" name="estDirecteur">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="estCapacite">Capacité (nombre d'élèves/lits)</label>
+                        <input type="number" id="estCapacite" name="estCapacite" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="estLatitude">Latitude</label>
+                        <input type="number" id="estLatitude" name="estLatitude" step="any" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="estLongitude">Longitude</label>
+                        <input type="number" id="estLongitude" name="estLongitude" step="any" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="estDescription">Description additionnelle</label>
+                        <textarea id="estDescription" name="estDescription"></textarea>
+                    </div>
+                    
+                    <input type="hidden" id="estId" name="estId" value="">
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelBtn">Annuler</button>
+                        <button type="submit" class="btn btn-primary" id="saveBtn">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Plateforme de visualisation des établissements au Togo - Utilise OpenStreetMap et Leaflet</p>
+            <p>Chargez des fichiers KML ou GPX pour afficher les établissements sur la carte</p>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-omnivore/0.3.4/leaflet-omnivore.min.js"></script>
+    <script>
+        // Initialisation de la carte centrée sur le Togo
+        const map = L.map('map').setView([8.6195, 0.8248], 8);
+        
+        // Ajout des tuiles OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 18
+        }).addTo(map);
+        
+        // Variables globales
+        let loadedLayers = [];
+        let pendingFiles = [];
+        let markersCount = 0;
+        let fileTypes = new Set();
+        let customMarkers = [];
+        let selectedMarker = null;
+        let editMode = false;
+        let userPosition = null;
+        let userMarker = null;
+        let distanceLines = [];
+        let allMarkers = [];
+        let selectedPreviewFile = null;
+        
+        // Éléments DOM
+        const fileInput = document.getElementById('fileInput');
+        const browseBtn = document.getElementById('browseBtn');
+        const dropArea = document.getElementById('dropArea');
+        const fileList = document.getElementById('fileList');
+        const noFilesMessage = document.getElementById('noFilesMessage');
+        const centerMapBtn = document.getElementById('centerMapBtn');
+        const clearAllBtn = document.getElementById('clearAllBtn');
+        const resetMapBtn = document.getElementById('resetMapBtn');
+        const zoomInBtn = document.getElementById('zoomInBtn');
+        const zoomOutBtn = document.getElementById('zoomOutBtn');
+        const locateBtn = document.getElementById('locateBtn');
+        const addMarkerBtn = document.getElementById('addMarkerBtn');
+        const editMarkerBtn = document.getElementById('editMarkerBtn');
+        const detailsCard = document.getElementById('detailsCard');
+        const establishmentDetails = document.getElementById('establishmentDetails');
+        const distanceToUserInfo = document.getElementById('distanceToUserInfo');
+        const distanceToUserValue = document.getElementById('distanceToUserValue');
+        const calcDistanceToMeBtn = document.getElementById('calcDistanceToMeBtn');
+        const calcDistancesBetweenBtn = document.getElementById('calcDistancesBetweenBtn');
+        const clearDistancesBtn = document.getElementById('clearDistancesBtn');
+        const detectLocationBtn = document.getElementById('detectLocationBtn');
+        const distanceResults = document.getElementById('distanceResults');
+        const previewContainer = document.getElementById('previewContainer');
+        const loadSelectedFileBtn = document.getElementById('loadSelectedFileBtn');
+        const clearPreviewBtn = document.getElementById('clearPreviewBtn');
+        
+        // Onglets
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        // Éléments du modal
+        const addEditModal = document.getElementById('addEditModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const establishmentForm = document.getElementById('establishmentForm');
+        const closeModal = document.getElementById('closeModal');
+        const cancelBtn = document.getElementById('cancelBtn');
+        
+        // Fonction pour calculer la distance entre deux points (formule de Haversine)
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Rayon de la Terre en km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distance = R * c; // Distance en km
+            return distance;
+        }
+        
+        // Formater la distance pour l'affichage
+        function formatDistance(distance) {
+            if (distance < 1) {
+                return (distance * 1000).toFixed(0) + ' m';
+            } else {
+                return distance.toFixed(2) + ' km';
+            }
+        }
+        
+        // Mise à jour des compteurs
+        function updateCounters() {
+            document.getElementById('fileCount').textContent = loadedLayers.length;
+            document.getElementById('markerCount').textContent = markersCount;
+            document.getElementById('typeCount').textContent = fileTypes.size;
+        }
+        
+        // Parser un fichier KML pour en extraire les informations
+        function parseKMLContent(content) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(content, "text/xml");
+            
+            const placemarks = xmlDoc.getElementsByTagName("Placemark");
+            const establishments = [];
+            
+            for (let i = 0; i < placemarks.length; i++) {
+                const placemark = placemarks[i];
+                const nameElement = placemark.getElementsByTagName("name")[0];
+                const descriptionElement = placemark.getElementsByTagName("description")[0];
+                const pointElement = placemark.getElementsByTagName("Point")[0];
+                
+                if (pointElement) {
+                    const coordinatesElement = pointElement.getElementsByTagName("coordinates")[0];
+                    if (coordinatesElement) {
+                        const coords = coordinatesElement.textContent.trim().split(",");
+                        
+                        const establishment = {
+                            name: nameElement ? nameElement.textContent : `Établissement ${i+1}`,
+                            description: descriptionElement ? descriptionElement.textContent : "",
+                            longitude: parseFloat(coords[0]),
+                            latitude: parseFloat(coords[1]),
+                            type: "Inconnu",
+                            region: "Non spécifiée",
+                            prefecture: "Non spécifiée",
+                            ville: "Non spécifiée",
+                            directeur: "Non spécifié",
+                            capacite: "Non spécifiée"
+                        };
+                        
+                        // Extraire les informations du description
+                        if (descriptionElement) {
+                            const desc = descriptionElement.textContent;
+                            
+                            const typeMatch = desc.match(/Type:\s*([^<]+)/i);
+                            const regionMatch = desc.match(/Région:\s*([^<]+)/i);
+                            const prefectureMatch = desc.match(/Préfecture:\s*([^<]+)/i);
+                            const villeMatch = desc.match(/Ville:\s*([^<]+)/i);
+                            const directeurMatch = desc.match(/Directeur:\s*([^<]+)/i);
+                            const capaciteMatch = desc.match(/Capacité:\s*([^<]+)/i);
+                            
+                            if (typeMatch) establishment.type = typeMatch[1].trim();
+                            if (regionMatch) establishment.region = regionMatch[1].trim();
+                            if (prefectureMatch) establishment.prefecture = prefectureMatch[1].trim();
+                            if (villeMatch) establishment.ville = villeMatch[1].trim();
+                            if (directeurMatch) establishment.directeur = directeurMatch[1].trim();
+                            if (capaciteMatch) establishment.capacite = capaciteMatch[1].trim();
+                        }
+                        
+                        establishments.push(establishment);
+                    }
+                }
+            }
+            
+            return establishments;
+        }
+        
+        // Parser un fichier GPX pour en extraire les informations
+        function parseGPXContent(content) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(content, "text/xml");
+            
+            const waypoints = xmlDoc.getElementsByTagName("wpt");
+            const establishments = [];
+            
+            for (let i = 0; i < waypoints.length; i++) {
+                const waypoint = waypoints[i];
+                const nameElement = waypoint.getElementsByTagName("name")[0];
+                const descElement = waypoint.getElementsByTagName("desc")[0];
+                const lat = parseFloat(waypoint.getAttribute("lat"));
+                const lon = parseFloat(waypoint.getAttribute("lon"));
+                
+                const establishment = {
+                    name: nameElement ? nameElement.textContent : `Point ${i+1}`,
+                    description: descElement ? descElement.textContent : "",
+                    longitude: lon,
+                    latitude: lat,
+                    type: "Inconnu",
+                    region: "Non spécifiée",
+                    prefecture: "Non spécifiée",
+                    ville: "Non spécifiée",
+                    directeur: "Non spécifié",
+                    capacite: "Non spécifiée"
+                };
+                
+                // Extraire les informations du description
+                if (descElement) {
+                    const desc = descElement.textContent;
+                    
+                    const typeMatch = desc.match(/Type:\s*([^<]+)/i);
+                    const regionMatch = desc.match(/Région:\s*([^<]+)/i);
+                    const prefectureMatch = desc.match(/Préfecture:\s*([^<]+)/i);
+                    const villeMatch = desc.match(/Ville:\s*([^<]+)/i);
+                    const directeurMatch = desc.match(/Directeur:\s*([^<]+)/i);
+                    const capaciteMatch = desc.match(/Capacité:\s*([^<]+)/i);
+                    
+                    if (typeMatch) establishment.type = typeMatch[1].trim();
+                    if (regionMatch) establishment.region = regionMatch[1].trim();
+                    if (prefectureMatch) establishment.prefecture = prefectureMatch[1].trim();
+                    if (villeMatch) establishment.ville = villeMatch[1].trim();
+                    if (directeurMatch) establishment.directeur = directeurMatch[1].trim();
+                    if (capaciteMatch) establishment.capacite = capaciteMatch[1].trim();
+                }
+                
+                establishments.push(establishment);
+            }
+            
+            return establishments;
+        }
+        
+        // Prévisualiser un fichier
+        function previewFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const content = e.target.result;
+                    let establishments = [];
+                    
+                    // Vérification du type de fichier et parsing
+                    if (file.name.endsWith('.kml')) {
+                        establishments = parseKMLContent(content);
+                    } else if (file.name.endsWith('.gpx')) {
+                        establishments = parseGPXContent(content);
+                    } else {
+                        reject(new Error('Format de fichier non supporté'));
+                        return;
+                    }
+                    
+                    // Stocker le fichier en attente
+                    const pendingFile = {
+                        id: Date.now() + Math.random(),
+                        file: file,
+                        content: content,
+                        establishments: establishments,
+                        status: 'pending'
+                    };
+                    
+                    pendingFiles.push(pendingFile);
+                    selectedPreviewFile = pendingFile;
+                    
+                    // Afficher la prévisualisation
+                    displayPreview(pendingFile);
+                    
+                    // Basculer vers l'onglet de prévisualisation
+                    switchTab('preview');
+                    
+                    resolve(pendingFile);
+                };
+                
+                reader.onerror = function() {
+                    reject(new Error('Erreur de lecture du fichier'));
+                };
+                
+                reader.readAsText(file);
+            });
+        }
+        
+        // Afficher la prévisualisation d'un fichier
+        function displayPreview(pendingFile) {
+            const file = pendingFile.file;
+            const establishments = pendingFile.establishments;
+            
+            let previewHTML = `
+                <div class="preview-header">
+                    <div class="preview-title">
+                        <i class="fas fa-file" style="margin-right: 8px;"></i>
+                        ${file.name}
+                    </div>
+                    <div class="file-status status-pending">
+                        <i class="fas fa-clock"></i> En attente
+                    </div>
+                </div>
+                
+                <div class="preview-content">
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <div><strong>Taille:</strong> ${formatFileSize(file.size)}</div>
+                            <div><strong>Type:</strong> ${file.name.split('.').pop().toUpperCase()}</div>
+                        </div>
+                        <div><strong>Nombre d'établissements:</strong> ${establishments.length}</div>
+                    </div>
+            `;
+            
+            if (establishments.length > 0) {
+                previewHTML += `
+                    <h4 style="margin-bottom: 0.5rem; color: #0066cc;">Établissements détectés:</h4>
+                    <div style="max-height: 200px; overflow-y: auto;">
+                        <table class="preview-table">
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Type</th>
+                                    <th>Ville</th>
+                                    <th>Coordonnées</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                // Limiter l'affichage à 10 établissements pour la prévisualisation
+                const displayLimit = Math.min(establishments.length, 10);
+                for (let i = 0; i < displayLimit; i++) {
+                    const est = establishments[i];
+                    previewHTML += `
+                        <tr>
+                            <td>${est.name}</td>
+                            <td>${est.type}</td>
+                            <td>${est.ville}</td>
+                            <td>${est.latitude.toFixed(4)}, ${est.longitude.toFixed(4)}</td>
+                        </tr>
+                    `;
+                }
+                
+                previewHTML += `
+                            </tbody>
+                        </table>
+                `;
+                
+                if (establishments.length > 10) {
+                    previewHTML += `<p style="text-align: center; color: #777; margin-top: 0.5rem;">... et ${establishments.length - 10} autres établissements</p>`;
+                }
+                
+                // Afficher un résumé des coordonnées
+                const bounds = calculateBounds(establishments);
+                previewHTML += `
+                    <div style="margin-top: 1rem; padding: 0.5rem; background-color: #f0f8ff; border-radius: 4px;">
+                        <div><strong>Zone couverte:</strong></div>
+                        <div style="font-size: 0.85rem;">
+                            <div>Latitude: ${bounds.minLat.toFixed(4)} à ${bounds.maxLat.toFixed(4)}</div>
+                            <div>Longitude: ${bounds.minLon.toFixed(4)} à ${bounds.maxLon.toFixed(4)}</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                previewHTML += `<p style="text-align: center; color: #777;">Aucun établissement détecté dans ce fichier</p>`;
+            }
+            
+            previewHTML += `</div>`;
+            
+            previewContainer.innerHTML = previewHTML;
+        }
+        
+        // Calculer les limites géographiques d'une liste d'établissements
+        function calculateBounds(establishments) {
+            if (establishments.length === 0) {
+                return {
+                    minLat: 0,
+                    maxLat: 0,
+                    minLon: 0,
+                    maxLon: 0
+                };
+            }
+            
+            let minLat = establishments[0].latitude;
+            let maxLat = establishments[0].latitude;
+            let minLon = establishments[0].longitude;
+            let maxLon = establishments[0].longitude;
+            
+            for (let i = 1; i < establishments.length; i++) {
+                const est = establishments[i];
+                minLat = Math.min(minLat, est.latitude);
+                maxLat = Math.max(maxLat, est.latitude);
+                minLon = Math.min(minLon, est.longitude);
+                maxLon = Math.max(maxLon, est.longitude);
+            }
+            
+            return { minLat, maxLat, minLon, maxLon };
+        }
+        
+        // Formater la taille d'un fichier
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // Charger un fichier prévisualisé sur la carte
+        function loadPreviewedFile(pendingFile) {
+            if (!pendingFile) {
+                alert('Aucun fichier sélectionné pour le chargement');
+                return;
+            }
+            
+            return new Promise((resolve, reject) => {
+                const file = pendingFile.file;
+                const content = pendingFile.content;
+                let layer;
+                
+                // Vérification du type de fichier et parsing
+                if (file.name.endsWith('.kml')) {
+                    layer = omnivore.kml.parse(content);
+                } else if (file.name.endsWith('.gpx')) {
+                    layer = omnivore.gpx.parse(content);
+                } else {
+                    reject(new Error('Format de fichier non supporté'));
+                    return;
+                }
+                
+                // Attente que le layer soit prêt
+                layer.on('ready', function() {
+                    // Détermination de la couleur basée sur le nom du fichier
+                    const color = getColorForFile(file.name);
+                    
+                    // Style des marqueurs
+                    if (layer.getLayers) {
+                        const layers = layer.getLayers();
+                        layers.forEach(function(l) {
+                            if (l instanceof L.Marker) {
+                                // Personnalisation du marqueur
+                                const markerIcon = L.divIcon({
+                                    html: `<div style="background-color: ${color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>`,
+                                    className: 'custom-marker',
+                                    iconSize: [16, 16]
+                                });
+                                l.setIcon(markerIcon);
+                                
+                                // Extraction des informations pour le popup
+                                let popupContent = `<b>${file.name.replace('.kml', '').replace('.gpx', '')}</b>`;
+                                
+                                if (l.feature && l.feature.properties) {
+                                    const props = l.feature.properties;
+                                    for (const key in props) {
+                                        if (props[key] && key !== 'styleUrl' && key !== 'styleHash') {
+                                            popupContent += `<br/><b>${key}:</b> ${props[key]}`;
+                                        }
+                                    }
+                                }
+                                
+                                // Ajout d'un événement de clic sur le marqueur
+                                l.on('click', function(e) {
+                                    showEstablishmentDetails(l, file.name);
+                                    selectedMarker = l;
+                                    // Afficher l'onglet Détails
+                                    switchTab('details');
+                                });
+                                
+                                l.bindPopup(popupContent);
+                                markersCount++;
+                                
+                                // Ajouter à la liste de tous les marqueurs
+                                allMarkers.push({
+                                    marker: l,
+                                    name: file.name.replace('.kml', '').replace('.gpx', ''),
+                                    type: 'file'
+                                });
+                            } else if (l instanceof L.Polyline || l instanceof L.Polygon) {
+                                // Style des lignes et polygones
+                                l.setStyle({
+                                    color: color,
+                                    weight: 3,
+                                    opacity: 0.7,
+                                    fillOpacity: 0.1
+                                });
+                            }
+                        });
+                    }
+                    
+                    // Ajout à la carte
+                    layer.addTo(map);
+                    
+                    // Enregistrement du layer
+                    const layerInfo = {
+                        id: pendingFile.id,
+                        name: file.name,
+                        size: file.size,
+                        layer: layer,
+                        color: color
+                    };
+                    
+                    loadedLayers.push(layerInfo);
+                    
+                    // Ajout du type de fichier
+                    const fileType = file.name.split('.').pop().toUpperCase();
+                    fileTypes.add(fileType);
+                    
+                    // Mettre à jour le statut du fichier
+                    pendingFile.status = 'loaded';
+                    
+                    // Retirer des fichiers en attente
+                    pendingFiles = pendingFiles.filter(f => f.id !== pendingFile.id);
+                    selectedPreviewFile = null;
+                    
+                    // Mise à jour de l'interface
+                    updateFileList();
+                    updateCounters();
+                    fitMapToLayers();
+                    
+                    // Afficher un message de confirmation
+                    previewContainer.innerHTML = `
+                        <div style="text-align: center; padding: 2rem;">
+                            <i class="fas fa-check-circle" style="font-size: 3rem; color: #2ecc71; margin-bottom: 1rem;"></i>
+                            <h3 style="color: #0066cc; margin-bottom: 0.5rem;">Fichier chargé avec succès</h3>
+                            <p>${file.name} a été localisé sur la carte</p>
+                            <p style="color: #777; font-size: 0.9rem;">${pendingFile.establishments.length} établissements ajoutés</p>
+                        </div>
+                    `;
+                    
+                    // Recentrer la carte sur les établissements chargés
+                    if (layer.getBounds) {
+                        map.fitBounds(layer.getBounds(), { padding: [50, 50] });
+                    }
+                    
+                    resolve(layerInfo);
+                });
+                
+                layer.on('error', function(err) {
+                    pendingFile.status = 'error';
+                    reject(err);
+                });
+            });
+        }
+        
+        // Obtention d'une couleur basée sur le nom du fichier
+        function getColorForFile(filename) {
+            const colors = ['#0066cc', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#e67e22', '#3498db'];
+            const hash = filename.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+            return colors[hash % colors.length];
+        }
+        
+        // Mise à jour de la liste des fichiers
+        function updateFileList() {
+            fileList.innerHTML = '';
+            
+            if (loadedLayers.length === 0) {
+                noFilesMessage.style.display = 'block';
+                return;
+            }
+            
+            noFilesMessage.style.display = 'none';
+            
+            loadedLayers.forEach(layerInfo => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <div class="file-name">
+                        <i class="fas fa-file" style="color: ${layerInfo.color}; margin-right: 8px;"></i>
+                        ${layerInfo.name}
+                    </div>
+                    <div class="file-actions">
+                        <i class="fas fa-eye" title="Afficher/Masquer" onclick="toggleLayerVisibility('${layerInfo.id}')"></i>
+                        <i class="fas fa-trash" title="Supprimer" onclick="removeLayer('${layerInfo.id}')"></i>
+                    </div>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+        
+        // Fonction pour afficher/masquer un layer
+        window.toggleLayerVisibility = function(id) {
+            const layerInfo = loadedLayers.find(l => l.id === id);
+            if (layerInfo) {
+                if (map.hasLayer(layerInfo.layer)) {
+                    map.removeLayer(layerInfo.layer);
+                } else {
+                    map.addLayer(layerInfo.layer);
+                }
+            }
+        };
+        
+        // Fonction pour supprimer un layer
+        window.removeLayer = function(id) {
+            const layerIndex = loadedLayers.findIndex(l => l.id === id);
+            if (layerIndex !== -1) {
+                const layerInfo = loadedLayers[layerIndex];
+                
+                // Retrait de la carte
+                map.removeLayer(layerInfo.layer);
+                
+                // Mise à jour du compteur de marqueurs
+                if (layerInfo.layer.getLayers) {
+                    markersCount -= layerInfo.layer.getLayers().filter(l => l instanceof L.Marker).length;
+                    
+                    // Retirer des marqueurs globaux
+                    const markersToRemove = layerInfo.layer.getLayers().filter(l => l instanceof L.Marker);
+                    allMarkers = allMarkers.filter(item => !markersToRemove.includes(item.marker));
+                }
+                
+                // Suppression du type de fichier si plus présent
+                const fileType = layerInfo.name.split('.').pop().toUpperCase();
+                const hasOtherFilesOfType = loadedLayers.some((l, i) => i !== layerIndex && l.name.endsWith(`.${fileType.toLowerCase()}`));
+                if (!hasOtherFilesOfType) {
+                    fileTypes.delete(fileType);
+                }
+                
+                // Suppression du tableau
+                loadedLayers.splice(layerIndex, 1);
+                
+                // Mise à jour de l'interface
+                updateFileList();
+                updateCounters();
+            }
+        };
+        
+        // Ajustement de la vue pour afficher tous les layers
+        function fitMapToLayers() {
+            if (loadedLayers.length === 0) return;
+            
+            const bounds = L.latLngBounds();
+            
+            loadedLayers.forEach(layerInfo => {
+                if (layerInfo.layer.getBounds) {
+                    bounds.extend(layerInfo.layer.getBounds());
+                }
+            });
+            
+            if (bounds.isValid()) {
+                map.fitBounds(bounds, { padding: [50, 50] });
+            }
+        }
+        
+        // Afficher les détails d'un établissement
+        function showEstablishmentDetails(marker, fileName) {
+            let detailsHTML = '';
+            
+            if (marker.feature && marker.feature.properties) {
+                const props = marker.feature.properties;
+                const name = props.name || fileName.replace('.kml', '').replace('.gpx', '');
+                
+                detailsHTML = `
+                    <div class="info-row">
+                        <div class="info-label">Nom:</div>
+                        <div class="info-value">${name}</div>
+                    </div>
+                `;
+                
+                // Extraire les informations du description si disponible
+                if (props.description) {
+                    const desc = props.description;
+                    
+                    // Extraire les informations structurées du description
+                    const typeMatch = desc.match(/Type:\s*([^<]+)/i);
+                    const regionMatch = desc.match(/Région:\s*([^<]+)/i);
+                    const prefectureMatch = desc.match(/Préfecture:\s*([^<]+)/i);
+                    const villeMatch = desc.match(/Ville:\s*([^<]+)/i);
+                    const directeurMatch = desc.match(/Directeur:\s*([^<]+)/i);
+                    const capaciteMatch = desc.match(/Capacité:\s*([^<]+)/i);
+                    
+                    if (typeMatch) {
+                        detailsHTML += `
+                            <div class="info-row">
+                                <div class="info-label">Type:</div>
+                                <div class="info-value">${typeMatch[1].trim()}</div>
+                            </div>
+                        `;
+                    }
+                    
+                    if (regionMatch) {
+                        detailsHTML += `
+                            <div class="info-row">
+                                <div class="info-label">Région:</div>
+                                <div class="info-value">${regionMatch[1].trim()}</div>
+                            </div>
+                        `;
+                    }
+                    
+                    if (prefectureMatch) {
+                        detailsHTML += `
+                            <div class="info-row">
+                                <div class="info-label">Préfecture:</div>
+                                <div class="info-value">${prefectureMatch[1].trim()}</div>
+                            </div>
+                        `;
+                    }
+                    
+                    if (villeMatch) {
+                        detailsHTML += `
+                            <div class="info-row">
+                                <div class="info-label">Ville:</div>
+                                <div class="info-value">${villeMatch[1].trim()}</div>
+                            </div>
+                        `;
+                    }
+                    
+                    if (directeurMatch) {
+                        detailsHTML += `
+                            <div class="info-row">
+                                <div class="info-label">Directeur:</div>
+                                <div class="info-value">${directeurMatch[1].trim()}</div>
+                            </div>
+                        `;
+                    }
+                    
+                    if (capaciteMatch) {
+                        detailsHTML += `
+                            <div class="info-row">
+                                <div class="info-label">Capacité:</div>
+                                <div class="info-value">${capaciteMatch[1].trim()}</div>
+                            </div>
+                        `;
+                    }
+                }
+                
+                // Ajouter les coordonnées
+                const latLng = marker.getLatLng();
+                detailsHTML += `
+                    <div class="info-row">
+                        <div class="info-label">Coordonnées:</div>
+                        <div class="info-value">${latLng.lat.toFixed(4)}, ${latLng.lng.toFixed(4)}</div>
+                    </div>
+                `;
+            }
+            
+            establishmentDetails.innerHTML = detailsHTML;
+            
+            // Calculer et afficher la distance à l'utilisateur si disponible
+            if (userPosition) {
+                const markerLatLng = marker.getLatLng();
+                const distance = calculateDistance(
+                    userPosition.lat, userPosition.lng,
+                    markerLatLng.lat, markerLatLng.lng
+                );
+                
+                distanceToUserValue.innerHTML = `
+                    <div class="distance-item">
+                        <div class="distance-name">Distance:</div>
+                        <div class="distance-value">${formatDistance(distance)}</div>
+                    </div>
+                    <div class="distance-item">
+                        <div class="distance-name">Temps en voiture*:</div>
+                        <div class="distance-value">${(distance / 60).toFixed(1)} h</div>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #777; margin-top: 0.5rem;">
+                        * Estimation basée sur une vitesse moyenne de 60 km/h
+                    </div>
+                `;
+                distanceToUserInfo.style.display = 'block';
+            } else {
+                distanceToUserInfo.style.display = 'none';
+            }
+            
+            // Afficher l'onglet Détails
+            switchTab('details');
+        }
+        
+        // Calculer les distances depuis la position de l'utilisateur
+        function calculateDistancesToUser() {
+            if (!userPosition) {
+                alert('Veuillez d\'abord détecter votre position');
+                switchTab('distance');
+                return;
+            }
+            
+            if (markersCount === 0) {
+                alert('Aucun établissement chargé sur la carte');
+                return;
+            }
+            
+            // Effacer les lignes de distance précédentes
+            clearDistanceLines();
+            
+            let resultsHTML = `<h3 style="margin-bottom: 1rem; color: #0066cc;">Distances depuis votre position</h3>`;
+            
+            // Collecter tous les marqueurs
+            const allMarkersList = getAllMarkers();
+            
+            if (allMarkersList.length === 0) {
+                resultsHTML += `<p style="text-align: center; color: #777;">Aucun établissement disponible</p>`;
+                distanceResults.innerHTML = resultsHTML;
+                return;
+            }
+            
+            // Trier par distance
+            const distances = allMarkersList.map(item => {
+                const markerLatLng = item.marker.getLatLng();
+                const distance = calculateDistance(
+                    userPosition.lat, userPosition.lng,
+                    markerLatLng.lat, markerLatLng.lng
+                );
+                
+                return {
+                    name: item.name,
+                    distance: distance,
+                    marker: item.marker
+                };
+            }).sort((a, b) => a.distance - b.distance);
+            
+            // Afficher les résultats
+            distances.forEach(item => {
+                resultsHTML += `
+                    <div class="distance-result-item">
+                        <div style="font-weight: 600; margin-bottom: 0.3rem;">${item.name}</div>
+                        <div class="distance-item">
+                            <div class="distance-name">Distance:</div>
+                            <div class="distance-value">${formatDistance(item.distance)}</div>
+                        </div>
+                    </div>
+                `;
+                
+                // Dessiner une ligne entre la position de l'utilisateur et le marqueur
+                const line = L.polyline([
+                    [userPosition.lat, userPosition.lng],
+                    [item.marker.getLatLng().lat, item.marker.getLatLng().lng]
+                ], {
+                    color: '#3498db',
+                    weight: 2,
+                    opacity: 0.7,
+                    dashArray: '5, 10'
+                }).addTo(map);
+                
+                distanceLines.push(line);
+            });
+            
+            distanceResults.innerHTML = resultsHTML;
+            switchTab('distance');
+        }
+        
+        // Calculer les distances entre les établissements
+        function calculateDistancesBetweenEstablishments() {
+            if (markersCount < 2) {
+                alert('Il faut au moins 2 établissements pour calculer les distances entre eux');
+                return;
+            }
+            
+            // Effacer les lignes de distance précédentes
+            clearDistanceLines();
+            
+            let resultsHTML = `<h3 style="margin-bottom: 1rem; color: #0066cc;">Distances entre établissements</h3>`;
+            
+            // Collecter tous les marqueurs
+            const allMarkersList = getAllMarkers();
+            
+            if (allMarkersList.length < 2) {
+                resultsHTML += `<p style="text-align: center; color: #777;">Pas assez d'établissements pour calculer</p>`;
+                distanceResults.innerHTML = resultsHTML;
+                return;
+            }
+            
+            // Calculer les distances pour chaque paire
+            const distances = [];
+            
+            for (let i = 0; i < allMarkersList.length; i++) {
+                for (let j = i + 1; j < allMarkersList.length; j++) {
+                    const marker1 = allMarkersList[i];
+                    const marker2 = allMarkersList[j];
+                    
+                    const latLng1 = marker1.marker.getLatLng();
+                    const latLng2 = marker2.marker.getLatLng();
+                    
+                    const distance = calculateDistance(
+                        latLng1.lat, latLng1.lng,
+                        latLng2.lat, latLng2.lng
+                    );
+                    
+                    distances.push({
+                        name1: marker1.name,
+                        name2: marker2.name,
+                        distance: distance,
+                        marker1: marker1.marker,
+                        marker2: marker2.marker
+                    });
+                }
+            }
+            
+            // Trier par distance
+            distances.sort((a, b) => a.distance - b.distance);
+            
+            // Limiter à 10 résultats pour ne pas surcharger
+            const limitedDistances = distances.slice(0, 10);
+            
+            // Afficher les résultats
+            limitedDistances.forEach(item => {
+                resultsHTML += `
+                    <div class="distance-result-item">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+                            <div style="font-weight: 600;">${item.name1}</div>
+                            <div style="font-weight: 600;">${item.name2}</div>
+                        </div>
+                        <div class="distance-item">
+                            <div class="distance-name">Distance:</div>
+                            <div class="distance-value">${formatDistance(item.distance)}</div>
+                        </div>
+                    </div>
+                `;
+                
+                // Dessiner une ligne entre les deux marqueurs
+                const line = L.polyline([
+                    [item.marker1.getLatLng().lat, item.marker1.getLatLng().lng],
+                    [item.marker2.getLatLng().lat, item.marker2.getLatLng().lng]
+                ], {
+                    color: '#3498db',
+                    weight: 2,
+                    opacity: 0.7,
+                    dashArray: '5, 10'
+                }).addTo(map);
+                
+                distanceLines.push(line);
+            });
+            
+            if (distances.length > 10) {
+                resultsHTML += `<p style="text-align: center; color: #777; margin-top: 1rem;">... et ${distances.length - 10} autres distances</p>`;
+            }
+            
+            distanceResults.innerHTML = resultsHTML;
+            switchTab('distance');
+        }
+        
+        // Obtenir tous les marqueurs de la carte
+        function getAllMarkers() {
+            let markers = [];
+            
+            // Marqueurs des fichiers chargés
+            loadedLayers.forEach(layerInfo => {
+                if (layerInfo.layer.getLayers) {
+                    const layers = layerInfo.layer.getLayers().filter(l => l instanceof L.Marker);
+                    layers.forEach(l => {
+                        markers.push({
+                            marker: l,
+                            name: layerInfo.name.replace('.kml', '').replace('.gpx', ''),
+                            type: 'file'
+                        });
+                    });
+                }
+            });
+            
+            // Marqueurs personnalisés ajoutés
+            customMarkers.forEach(marker => {
+                markers.push({
+                    marker: marker,
+                    name: marker.options.name || 'Établissement personnalisé',
+                    type: 'custom'
+                });
+            });
+            
+            return markers;
+        }
+        
+        // Effacer les lignes de distance
+        function clearDistanceLines() {
+            distanceLines.forEach(line => {
+                map.removeLayer(line);
+            });
+            distanceLines = [];
+        }
+        
+        // Détecter la position de l'utilisateur
+        function detectUserLocation() {
+            if (navigator.geolocation) {
+                document.getElementById('userPositionInfo').innerHTML = `
+                    <p style="color: #777; margin-bottom: 1rem;">
+                        <i class="fas fa-spinner fa-spin"></i> Détection en cours...
+                    </p>
+                `;
+                
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const { latitude, longitude } = position.coords;
+                        userPosition = { lat: latitude, lng: longitude };
+                        
+                        // Mettre à jour l'affichage
+                        document.getElementById('userPositionInfo').innerHTML = `
+                            <div style="margin-bottom: 1rem;">
+                                <div style="font-weight: 600; color: #0066cc; margin-bottom: 0.5rem;">
+                                    <i class="fas fa-map-marker-alt"></i> Position détectée
+                                </div>
+                                <div style="font-size: 0.9rem;">
+                                    <div>Latitude: ${latitude.toFixed(6)}</div>
+                                    <div>Longitude: ${longitude.toFixed(6)}</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-success" id="centerOnUserBtn">
+                                <i class="fas fa-crosshairs"></i> Centrer sur ma position
+                            </button>
+                        `;
+                        
+                        // Ajouter un bouton pour centrer sur la position de l'utilisateur
+                        document.getElementById('centerOnUserBtn').addEventListener('click', function() {
+                            map.setView([latitude, longitude], 13);
+                        });
+                        
+                        // Ajouter un marqueur pour la position de l'utilisateur
+                        if (userMarker) {
+                            map.removeLayer(userMarker);
+                        }
+                        
+                        userMarker = L.marker([latitude, longitude], {
+                            icon: L.divIcon({
+                                html: `<div style="background-color: #e74c3c; width: 14px; height: 14px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 8px rgba(0,0,0,0.5);"></div>`,
+                                className: 'user-marker',
+                                iconSize: [20, 20]
+                            })
+                        }).addTo(map);
+                        
+                        userMarker.bindPopup('<b>Votre position</b>').openPopup();
+                        
+                        // Si un établissement est sélectionné, mettre à jour la distance
+                        if (selectedMarker) {
+                            const markerLatLng = selectedMarker.getLatLng();
+                            const distance = calculateDistance(
+                                latitude, longitude,
+                                markerLatLng.lat, markerLatLng.lng
+                            );
+                            
+                            distanceToUserValue.innerHTML = `
+                                <div class="distance-item">
+                                    <div class="distance-name">Distance:</div>
+                                    <div class="distance-value">${formatDistance(distance)}</div>
+                                </div>
+                                <div class="distance-item">
+                                    <div class="distance-name">Temps en voiture*:</div>
+                                    <div class="distance-value">${(distance / 60).toFixed(1)} h</div>
+                                </div>
+                                <div style="font-size: 0.8rem; color: #777; margin-top: 0.5rem;">
+                                    * Estimation basée sur une vitesse moyenne de 60 km/h
+                                </div>
+                            `;
+                            distanceToUserInfo.style.display = 'block';
+                        }
+                    },
+                    () => {
+                        document.getElementById('userPositionInfo').innerHTML = `
+                            <p style="color: #e74c3c; margin-bottom: 1rem;">
+                                <i class="fas fa-exclamation-triangle"></i> Impossible de détecter votre position
+                            </p>
+                            <button class="btn btn-primary" id="detectLocationBtn">
+                                <i class="fas fa-location-arrow"></i> Réessayer
+                            </button>
+                        `;
+                        // Réattacher l'événement
+                        document.getElementById('detectLocationBtn').addEventListener('click', detectUserLocation);
+                    }
+                );
+            } else {
+                alert('La géolocalisation n\'est pas supportée par votre navigateur');
+            }
+        }
+        
+        // Changer d'onglet
+        function switchTab(tabName) {
+            // Désactiver tous les onglets
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Activer l'onglet sélectionné
+            document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+        
+        // Effacer la prévisualisation
+        function clearPreview() {
+            previewContainer.innerHTML = `<p style="text-align: center; color: #777; font-style: italic;">
+                Sélectionnez un fichier à prévisualiser
+            </p>`;
+            
+            // Retirer le fichier sélectionné
+            if (selectedPreviewFile) {
+                pendingFiles = pendingFiles.filter(f => f.id !== selectedPreviewFile.id);
+                selectedPreviewFile = null;
+            }
+        }
+        
+        // Ouvrir le modal pour ajouter un établissement
+        addMarkerBtn.addEventListener('click', function() {
+            editMode = false;
+            modalTitle.textContent = 'Ajouter un établissement';
+            establishmentForm.reset();
+            document.getElementById('estId').value = '';
+            
+            // Remplir les coordonnées avec le centre de la carte
+            const center = map.getCenter();
+            document.getElementById('estLatitude').value = center.lat.toFixed(6);
+            document.getElementById('estLongitude').value = center.lng.toFixed(6);
+            
+            addEditModal.style.display = 'flex';
+        });
+        
+        // Ouvrir le modal pour modifier un établissement
+        editMarkerBtn.addEventListener('click', function() {
+            if (!selectedMarker) return;
+            
+            editMode = true;
+            modalTitle.textContent = 'Modifier l\'établissement';
+            
+            // Extraire les informations du marqueur
+            const latLng = selectedMarker.getLatLng();
+            
+            // Remplir le formulaire avec les données existantes
+            document.getElementById('estLatitude').value = latLng.lat.toFixed(6);
+            document.getElementById('estLongitude').value = latLng.lng.toFixed(6);
+            
+            // Si le marqueur a des propriétés, les utiliser
+            if (selectedMarker.feature && selectedMarker.feature.properties) {
+                const props = selectedMarker.feature.properties;
+                
+                document.getElementById('estName').value = props.name || '';
+                
+                if (props.description) {
+                    const desc = props.description;
+                    
+                    const typeMatch = desc.match(/Type:\s*([^<]+)/i);
+                    const regionMatch = desc.match(/Région:\s*([^<]+)/i);
+                    const prefectureMatch = desc.match(/Préfecture:\s*([^<]+)/i);
+                    const villeMatch = desc.match(/Ville:\s*([^<]+)/i);
+                    const directeurMatch = desc.match(/Directeur:\s*([^<]+)/i);
+                    const capaciteMatch = desc.match(/Capacité:\s*([^<]+)/i);
+                    
+                    if (typeMatch) document.getElementById('estType').value = typeMatch[1].trim();
+                    if (regionMatch) document.getElementById('estRegion').value = regionMatch[1].trim();
+                    if (prefectureMatch) document.getElementById('estPrefecture').value = prefectureMatch[1].trim();
+                    if (villeMatch) document.getElementById('estVille').value = villeMatch[1].trim();
+                    if (directeurMatch) document.getElementById('estDirecteur').value = directeurMatch[1].trim();
+                    if (capaciteMatch) document.getElementById('estCapacite').value = capaciteMatch[1].trim().replace('élèves', '').replace('lits', '').trim();
+                }
+            }
+            
+            addEditModal.style.display = 'flex';
+        });
+        
+        // Fermer le modal
+        closeModal.addEventListener('click', function() {
+            addEditModal.style.display = 'none';
+        });
+        
+        cancelBtn.addEventListener('click', function() {
+            addEditModal.style.display = 'none';
+        });
+        
+        // Gérer la soumission du formulaire
+        establishmentForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('estName').value;
+            const type = document.getElementById('estType').value;
+            const region = document.getElementById('estRegion').value;
+            const prefecture = document.getElementById('estPrefecture').value;
+            const ville = document.getElementById('estVille').value;
+            const adresse = document.getElementById('estAdresse').value;
+            const directeur = document.getElementById('estDirecteur').value;
+            const capacite = document.getElementById('estCapacite').value;
+            const lat = parseFloat(document.getElementById('estLatitude').value);
+            const lng = parseFloat(document.getElementById('estLongitude').value);
+            const description = document.getElementById('estDescription').value;
+            
+            if (editMode && selectedMarker) {
+                // Modifier le marqueur existant
+                selectedMarker.setLatLng([lat, lng]);
+                
+                // Mettre à jour le popup
+                const popupContent = `
+                    <b>${name}</b><br/>
+                    Type: ${type}<br/>
+                    Région: ${region}<br/>
+                    Préfecture: ${prefecture}<br/>
+                    Ville: ${ville}<br/>
+                    ${directeur ? `Directeur: ${directeur}<br/>` : ''}
+                    ${capacite ? `Capacité: ${capacite}<br/>` : ''}
+                    ${description ? `Description: ${description}` : ''}
+                `;
+                
+                selectedMarker.bindPopup(popupContent);
+                
+                // Mettre à jour les détails affichés
+                const detailsHTML = `
+                    <div class="info-row">
+                        <div class="info-label">Nom:</div>
+                        <div class="info-value">${name}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Type:</div>
+                        <div class="info-value">${type}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Région:</div>
+                        <div class="info-value">${region}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Préfecture:</div>
+                        <div class="info-value">${prefecture}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Ville:</div>
+                        <div class="info-value">${ville}</div>
+                    </div>
+                    ${directeur ? `
+                    <div class="info-row">
+                        <div class="info-label">Directeur:</div>
+                        <div class="info-value">${directeur}</div>
+                    </div>` : ''}
+                    ${capacite ? `
+                    <div class="info-row">
+                        <div class="info-label">Capacité:</div>
+                        <div class="info-value">${capacite}</div>
+                    </div>` : ''}
+                    <div class="info-row">
+                        <div class="info-label">Coordonnées:</div>
+                        <div class="info-value">${lat.toFixed(4)}, ${lng.toFixed(4)}</div>
+                    </div>
+                `;
+                
+                establishmentDetails.innerHTML = detailsHTML;
+            } else {
+                // Ajouter un nouveau marqueur
+                const color = '#9b59b6'; // Couleur pour les établissements ajoutés manuellement
+                
+                const markerIcon = L.divIcon({
+                    html: `<div style="background-color: ${color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>`,
+                    className: 'custom-marker',
+                    iconSize: [16, 16]
+                });
+                
+                const marker = L.marker([lat, lng], { 
+                    icon: markerIcon,
+                    name: name
+                }).addTo(map);
+                
+                const popupContent = `
+                    <b>${name}</b><br/>
+                    Type: ${type}<br/>
+                    Région: ${region}<br/>
+                    Préfecture: ${prefecture}<br/>
+                    Ville: ${ville}<br/>
+                    ${directeur ? `Directeur: ${directeur}<br/>` : ''}
+                    ${capacite ? `Capacité: ${capacite}<br/>` : ''}
+                    ${description ? `Description: ${description}` : ''}
+                `;
+                
+                marker.bindPopup(popupContent);
+                
+                // Ajouter un événement de clic
+                marker.on('click', function(e) {
+                    showEstablishmentDetails(marker, name);
+                    selectedMarker = marker;
+                });
+                
+                customMarkers.push(marker);
+                markersCount++;
+                updateCounters();
+                
+                // Ajouter aux marqueurs globaux
+                allMarkers.push({
+                    marker: marker,
+                    name: name,
+                    type: 'custom'
+                });
+                
+                // Afficher les détails
+                showEstablishmentDetails(marker, name);
+            }
+            
+            addEditModal.style.display = 'none';
+        });
+        
+        // Gestionnaire d'événement pour le bouton de parcours
+        browseBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        // Gestionnaire d'événement pour la sélection de fichiers
+        fileInput.addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files);
+            
+            if (files.length > 0) {
+                // Prévisualiser le premier fichier
+                try {
+                    await previewFile(files[0]);
+                } catch (error) {
+                    alert(`Erreur lors de la prévisualisation de ${files[0].name}: ${error.message}`);
+                }
+            }
+            
+            // Réinitialisation de l'input
+            fileInput.value = '';
+        });
+        
+        // Gestion du drag & drop
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.style.borderColor = '#004d99';
+            dropArea.style.backgroundColor = '#e6f2ff';
+        });
+        
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.style.borderColor = '#0066cc';
+            dropArea.style.backgroundColor = '#f8fbff';
+        });
+        
+        dropArea.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            dropArea.style.borderColor = '#0066cc';
+            dropArea.style.backgroundColor = '#f8fbff';
+            
+            const files = Array.from(e.dataTransfer.files);
+            const validFiles = files.filter(f => 
+                f.name.endsWith('.kml') || f.name.endsWith('.gpx')
+            );
+            
+            if (validFiles.length === 0) {
+                alert('Veuillez déposer uniquement des fichiers KML ou GPX');
+                return;
+            }
+            
+            if (validFiles.length > 0) {
+                // Prévisualiser le premier fichier
+                try {
+                    await previewFile(validFiles[0]);
+                } catch (error) {
+                    alert(`Erreur lors de la prévisualisation de ${validFiles[0].name}: ${error.message}`);
+                }
+            }
+        });
+        
+        // Charger un fichier prévisualisé sur la carte
+        loadSelectedFileBtn.addEventListener('click', async function() {
+            if (!selectedPreviewFile) {
+                alert('Aucun fichier à charger. Veuillez d\'abord prévisualiser un fichier.');
+                return;
+            }
+            
+            try {
+                await loadPreviewedFile(selectedPreviewFile);
+            } catch (error) {
+                alert(`Erreur lors du chargement du fichier: ${error.message}`);
+            }
+        });
+        
+        // Effacer la prévisualisation
+        clearPreviewBtn.addEventListener('click', clearPreview);
+        
+        // Recentrage sur le Togo
+        centerMapBtn.addEventListener('click', () => {
+            map.setView([8.6195, 0.8248], 8);
+        });
+        
+        // Calculer les distances à ma position
+        calcDistanceToMeBtn.addEventListener('click', calculateDistancesToUser);
+        
+        // Calculer les distances entre établissements
+        calcDistancesBetweenBtn.addEventListener('click', calculateDistancesBetweenEstablishments);
+        
+        // Effacer les lignes de distance
+        clearDistancesBtn.addEventListener('click', function() {
+            clearDistanceLines();
+            distanceResults.innerHTML = `<p style="text-align: center; color: #777; font-style: italic;">
+                Cliquez sur un bouton pour calculer les distances
+            </p>`;
+        });
+        
+        // Détecter la position de l'utilisateur
+        detectLocationBtn.addEventListener('click', detectUserLocation);
+        
+        // Réinitialiser la carte (supprimer tous les marqueurs et fichiers)
+        resetMapBtn.addEventListener('click', () => {
+            if (loadedLayers.length === 0 && customMarkers.length === 0 && pendingFiles.length === 0) return;
+            
+            if (confirm('Voulez-vous vraiment réinitialiser la carte? Tous les fichiers et marqueurs seront supprimés.')) {
+                // Supprimer les fichiers chargés
+                loadedLayers.forEach(layerInfo => {
+                    map.removeLayer(layerInfo.layer);
+                });
+                
+                // Supprimer les marqueurs personnalisés
+                customMarkers.forEach(marker => {
+                    map.removeLayer(marker);
+                });
+                
+                // Effacer les lignes de distance
+                clearDistanceLines();
+                
+                // Effacer la prévisualisation
+                clearPreview();
+                
+                // Réinitialiser toutes les variables
+                loadedLayers = [];
+                customMarkers = [];
+                allMarkers = [];
+                pendingFiles = [];
+                markersCount = 0;
+                fileTypes.clear();
+                selectedMarker = null;
+                selectedPreviewFile = null;
+                distanceResults.innerHTML = `<p style="text-align: center; color: #777; font-style: italic;">
+                    Cliquez sur un bouton pour calculer les distances
+                </p>`;
+                
+                // Mise à jour de l'interface
+                updateFileList();
+                updateCounters();
+                
+                // Recentrer sur le Togo
+                map.setView([8.6195, 0.8248], 8);
+            }
+        });
+        
+        // Effacer tous les marqueurs
+        clearAllBtn.addEventListener('click', () => {
+            if (loadedLayers.length === 0 && customMarkers.length === 0) return;
+            
+            if (confirm('Voulez-vous vraiment supprimer tous les marqueurs?')) {
+                loadedLayers.forEach(layerInfo => {
+                    map.removeLayer(layerInfo.layer);
+                });
+                
+                customMarkers.forEach(marker => {
+                    map.removeLayer(marker);
+                });
+                
+                // Effacer les lignes de distance
+                clearDistanceLines();
+                
+                loadedLayers = [];
+                customMarkers = [];
+                allMarkers = [];
+                markersCount = 0;
+                fileTypes.clear();
+                selectedMarker = null;
+                distanceResults.innerHTML = `<p style="text-align: center; color: #777; font-style: italic;">
+                    Cliquez sur un bouton pour calculer les distances
+                </p>`;
+                
+                updateFileList();
+                updateCounters();
+            }
+        });
+        
+        // Contrôles de zoom
+        zoomInBtn.addEventListener('click', () => {
+            map.zoomIn();
+        });
+        
+        zoomOutBtn.addEventListener('click', () => {
+            map.zoomOut();
+        });
+        
+        // Localisation de l'utilisateur
+        locateBtn.addEventListener('click', () => {
+            detectUserLocation();
+        });
+        
+        // Gestion des onglets
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabName = this.getAttribute('data-tab');
+                switchTab(tabName);
+            });
+        });
+        
+        // Ajout de quelques exemples de marqueurs au Togo (pour démonstration)
+        function addExampleMarkers() {
+            // Exemples d'établissements au Togo
+            const establishments = [
+                { name: "Hôpital Baptiste Biblique", lat: 6.1375, lng: 1.2123, type: "Hôpital" },
+                { name: "Université de Lomé", lat: 6.1750, lng: 1.2050, type: "Université" },
+                { name: "Lycée de Tokoin", lat: 6.1600, lng: 1.2200, type: "Lycée" },
+                { name: "Centre Hospitalier Régional de Kara", lat: 9.5511, lng: 1.1917, type: "Hôpital" },
+                { name: "Mairie de Lomé", lat: 6.1287, lng: 1.2217, type: "Mairie" }
+            ];
+            
+            establishments.forEach(est => {
+                const color = est.type === "Hôpital" || est.type === "Centre de Santé" ? "#2ecc71" : 
+                             est.type === "Lycée" || est.type === "Université" || est.type === "CEG" ? "#f39c12" : 
+                             est.type === "Mairie" || est.type === "Administration" ? "#0066cc" : "#e74c3c";
+                
+                const marker = L.marker([est.lat, est.lng], {
+                    icon: L.divIcon({
+                        html: `<div style="background-color: ${color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>`,
+                        className: 'custom-marker',
+                        iconSize: [16, 16]
+                    })
+                }).addTo(map);
+                
+                marker.bindPopup(`<b>${est.name}</b><br/>Type: ${est.type}<br/>Ville: ${est.lat > 8 ? "Kara" : "Lomé"}`);
+                
+                // Ajouter un événement de clic
+                marker.on('click', function(e) {
+                    showEstablishmentDetails(marker, est.name);
+                    selectedMarker = marker;
+                });
+                
+                customMarkers.push(marker);
+                markersCount++;
+                
+                // Ajouter aux marqueurs globaux
+                allMarkers.push({
+                    marker: marker,
+                    name: est.name,
+                    type: 'custom'
+                });
+            });
+            
+            updateCounters();
+        }
+        
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', () => {
+            addExampleMarkers();
+            updateCounters();
+            
+            // Fermer le modal en cliquant en dehors
+            window.addEventListener('click', (e) => {
+                if (e.target === addEditModal) {
+                    addEditModal.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
